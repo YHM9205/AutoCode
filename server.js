@@ -22,7 +22,12 @@ app.get('/',(req,res)=>{
 
 
 app.get('/system',(req,res)=>{
-    res.render('system')
+    const systemStatus = [
+        { name: 'Engine Diagnostics', status: 'Optimal', code: 'P0000'},
+        { name: 'Transmission Gearbox', status: 'need to change the clutches', code: 'P0920'},
+        { name: 'Cooling System', status: 'stable', code: 'P0119'}
+    ]
+    res.render('system', {system: systemStatus})
 })
  
 app.get ('/garage',(req,res)=>{
