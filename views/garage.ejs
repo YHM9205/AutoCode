@@ -17,6 +17,14 @@
     <main>
         <h2>Cars dir</h2>
         <p>Monitore Cars digagnostic codes, sensores and mechanical status.</p>
+
+        <ul>
+            <% cars.forEach(car => { %>
+               <li>
+                  <strong><%=car.model%></strong>(<%=car.year%>) - <%car.type%>
+               </li>
+           <% }) %>
+        </ul>
     </main>
 </body>
 </html>

@@ -19,16 +19,14 @@ app.get('/',(req,res)=>{
     res.render('index')
 })
 
-app.get('/garage',(req,res)=>{
-    res.render('garage')
-})
+
 
 app.get('/system',(req,res)=>{
     res.render('system')
 })
  
-app.get ('/garage', (reqres)=>{
-    res.render('garage', {cars: myCars})
+app.get ('/garage',(req,res)=>{
+    res.render('garage',{cars: myCars})
 })
 
 
