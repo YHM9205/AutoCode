@@ -2,20 +2,26 @@ const express = require("express") //importing express package
 const app = express() // creates a express application
 const PORT = 3000
 
-
+app.set('view engine','ejs')
 app.use(express.static('public'))
 
 
-app.get('/', (req,res)=>{
-    res.send('Welcome to AutoCode Server!')
-})
 
 
 
 
 // Routes go here
+app.get('/',(req,res)=>{
+    res.render('index')
+})
 
+app.get('/garage',(req,res)=>{
+    res.render('garage')
+})
 
+app.get('/system', (req,res)=>{
+    res.render('system')
+})
  
 
 
