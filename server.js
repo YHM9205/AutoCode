@@ -1,7 +1,11 @@
 const express = require("express") //importing express package
 const app = express() // creates a express application
 const PORT = 3000
-
+const myCars = [
+    { model: 'Ford F-150', year: 2012, type: 'Pickup'},
+    { model: 'Ford Taurus', year: 2012, type: 'Sedan'},
+    { model: 'Mazda CX-9', year: 2018, type: 'SUV'}
+]
 app.set('view engine','ejs')
 app.use(express.static('public'))
 
@@ -23,7 +27,9 @@ app.get('/system',(req,res)=>{
     res.render('system')
 })
  
-
+app.get ('/garage', (reqres)=>{
+    res.render('garage', {cars: myCars})
+})
 
 
 
