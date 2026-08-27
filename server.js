@@ -19,7 +19,7 @@ app.get('/garage',(req,res)=>{
     res.render('garage')
 })
 
-app.get('/system', (req,res)=>{
+app.get('/system',(req,res)=>{
     res.render('system')
 })
  
