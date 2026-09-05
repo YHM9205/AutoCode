@@ -1,4 +1,8 @@
-const express = require("express") //importing express package
+require('dotenv').config()
+
+const express = require('express')
+const mongoose = require('mongoose')
+const ObdCode = require('./models/ObdCode')
 const app = express() // creates a express application
 const PORT = 3000
 const myCars = [
@@ -8,6 +12,8 @@ const myCars = [
 ]
 app.set('view engine','ejs')
 app.use(express.static('public'))
+
+
 
 
 
