@@ -5,53 +5,64 @@ const ObdCode = require('./models/ObdCode')
 
 const app = express()
 const PORT = process.env.PORT || 4000;
-const MONGO_URI = require.process.mong.MONGO_URI;
-app.set('view engine, ejs');
-app.use(express.urlencoded({extended:true});
+const MONGO_URI = process.env.MONGO_URI;
+
+app.set('view engine', 'ejs');
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
 
-const myCars = [
-    { model: 'Ford F-150', year: 2012, type: 'Pickup' },
-    { model: 'Ford Taurus', year: 2012, type: 'Sedan' },
-    { model: 'Mazda CX-9', year: 2018, type: 'SUV' }
-]
-app.set('view engine', 'ejs');
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
-
-
-mongoose.connect(process.env.MONGO_URI)
-mongoose.connection.once('open', () => {
-    console.log('Connected')
-});
+mongoose.connect(MONGO_URI)
+const connectDB = async () => {
+    try {
+        await mongoose.connect(MONGO_URI)
+        console.log('[Mongoose]:, connected!')
+    } catch (err) {
+        console.log('[Mongoose Connection Error]:, err.message')
+    }
+};
+connectDB();
 
 
 // Routes go here
-app.get('/', async (req, res) => {
-    try{
-        const codes = await ObdCode.find({})
-    res.render('index.ejs',{ codes, myCars })
-} catch (Error) {
-    console.log(Error)
-    res.send(Error)
-}
-});
-
+app.get('/', (req, res) => {
+    res.render('index')
+})
 
 
 app.get('/system', (req, res) => {
-    const systemStatus = [
-        { name: 'Engine Diagnostics', status: 'Optimal', code: 'P0000' },
-        { name: 'Transmission Gearbox', status: 'need to change the clutches', code: 'P0920' },
-        { name: 'Cooling System', status: 'stable', code: 'P0119' }
-    ]
-    res.render('system', { system: systemStatus })
+
+    res.render('system', { result: null })
 })
 
-app.get('/garage', (req, res) => {
-    res.render('garage', { cars: myCars })
-})
+
+app.get('/diagnose', async (req, res) => {
+    try {
+        const code  = req.body
+        if (!code) {
+            return res.render('system', { result: { error: "please add the real code!" } })
+        }
+        const cleanCode = code.trim().toUpperCase()
+        let record = await ObdCode.findOne({ code: cleanCode });
+    
+     if (!record) {
+        record = new ObdCode({
+            code: cleanCode,
+            name: `Generated Profile for ${cleanCode}`,
+            category: cleanCode.charAt(0),
+            problem: "Dynamic / General Load Condition",
+            solution: "Verify sensor reference voltage and wiring harness continuity",
+            ghost_fix: "Inspacted_and_saved_via_mongoose"
+        });
+        await record.save();
+    }
+
+    res.render('system', { result: record });
+} catch (error) {
+    console.log('[Error]:', error.message);
+    res.status(500).render('system', { result: { error: "ServerError!" } });
+  }
+});
 
 
 
