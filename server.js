@@ -1,11 +1,15 @@
 require('dotenv').config()
-
 const express = require('express')
 const mongoose = require('mongoose')
 const ObdCode = require('./models/ObdCode')
-const app = express()
-const PORT = process.env.PORT || 3000
 
+const app = express()
+const PORT = process.env.PORT || 4000;
+const MONGO_URI = require.process.mong.MONGO_URI;
+app.set('view engine, ejs');
+app.use(express.urlencoded({extended:true});
+app.use(express.json());
+app.use(express.static('public'));
 
 const myCars = [
     { model: 'Ford F-150', year: 2012, type: 'Pickup' },

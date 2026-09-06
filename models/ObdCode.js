@@ -1,39 +1,38 @@
 const mongoose = require('mongoose')
 
 const obdCodeSchema = new mongoose.Schema({
-    vin:{
-        type:String,
-        required:true,
-        uppercase:true,
+    code: {
+        type: String,
+        required: true,
+        unique: true,
+        uppercase: true,
         trim: true
+    },
+    name: {
+        type: String,
+        required: true,
+    },
+    category: {
+        type: String,
+        required: true,
+    },
+    problem:{
+        type: true,
+        String
+    },
+    solution:{
+        type:String
+    },
 
+    ghost_fix: {
+        type: String,
     },
-    code:{
-        type:String,
-        required:true,
-        uppercase:true,
-        trim:true
-    },
-    category:{
-        type:String,
-        required:true,
-        enum:['Powertrain', 'Body', 'Chassis','Network']
-    },
-    description:{
-        type:String,
-        required:true
-    },
-    status:{
-        type:String,
-        default:'Active',
-        enum:['Active', 'Resolved']
-    },
-    notes:{
-        type:String,
-        default:''
+    source:{
+        type:String,default:'mongoose_core_database'
     }
+   
 },{
-    timestamps:true
+    timestamps: true
 });
 
 const ObdCode = mongoose.model('ObdCode', obdCodeSchema)
