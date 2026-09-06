@@ -17,8 +17,8 @@ const obdCodeSchema = new mongoose.Schema({
         required: true,
     },
     problem:{
-        type: true,
-        String
+        type: String,
+        String:true
     },
     solution:{
         type:String
