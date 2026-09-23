@@ -1,71 +1,83 @@
-require('dotenv').config()
-const express = require('express')
-const mongoose = require('mongoose')
-const ObdCode = require('./models/ObdCode')
+// imports
+const express = require("express") //importing express package
+const app = express() // creates a express application
+const dotenv = require("dotenv").config() //this allows me to use my .env values in this file
+const mongoose = require("mongoose")
+const morgan = require("morgan")
+const methodOverride = require("method-override")
 
-const app = express()
-const PORT = process.env.PORT || 4000;
-const MONGO_URI = process.env.MONGO_URI;
 
-app.set('view engine', 'ejs');
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static('public'));
 
-mongoose.connect(MONGO_URI)
-const connectDB = async () => {
-    try {
-        await mongoose.connect(MONGO_URI)
-        console.log('[Mongoose]:, connected!')
-    } catch (err) {
-        console.log('[Mongoose Connection Error]:, err.message')
+
+
+
+
+
+
+
+
+
+
+
+// Middleware
+app.use(express.static('public')); //all static files are in the public folder
+app.use(express.urlencoded({ extended: false })); // this will allow us to see the data being sent in the POST or PUT
+app.use(methodOverride("_method")); // Changes the method based on the ?_method
+app.use(morgan("dev")) // logs the requests as they are sent to our sever in the terminal
+
+
+
+async function conntectToDB(){ //connection to the database
+    try{
+        await mongoose.connect(process.env.MONGODB_URI)
+        console.log("Connected to Database")
     }
-};
-connectDB();
+    catch(error){
+        console.log("Error Occured",error)
+    }
+}
+
+
+conntectToDB()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Routes go here
-app.get('/', (req, res) => {
-    res.render('index')
-})
-
-
-app.get('/system', (req, res) => {
-
-    res.render('system', { result: null })
-})
-
-
-app.get('/diagnose', async (req, res) => {
-    try {
-        const code  = req.body
-        if (!code) {
-            return res.render('system', { result: { error: "please add the real code!" } })
-        }
-        const cleanCode = code.trim().toUpperCase()
-        let record = await ObdCode.findOne({ code: cleanCode });
-    
-     if (!record) {
-        record = new ObdCode({
-            code: cleanCode,
-            name: `Generated Profile for ${cleanCode}`,
-            category: cleanCode.charAt(0),
-            problem: "Dynamic / General Load Condition",
-            solution: "Verify sensor reference voltage and wiring harness continuity",
-            ghost_fix: "Inspacted_and_saved_via_mongoose"
-        });
-        await record.save();
-    }
-
-    res.render('system', { result: record });
-} catch (error) {
-    console.log('[Error]:', error.message);
-    res.status(500).render('system', { result: { error: "ServerError!" } });
-  }
-});
 
 
 
-app.listen(3000, () => {
-    console.log('App is Running')
-}) // listen on port 3000
+
+
+
+
+
+ 
+ 
+ 
+ 
+
+
+
+
+app.listen(3000,()=>{
+    console.log("Listening on port " + 3000)
+}) // Listen on port 3000
+
+
