@@ -1,40 +1,35 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const obdCodeSchema = new mongoose.Schema({
     code: {
         type: String,
         required: true,
         unique: true,
-        uppercase: true,
-        trim: true
+        uppercase: true
     },
-    name: {
-        type: String,
-        required: true,
+    name:{
+        type: String
     },
-    category: {
-        type: String,
-        required: true,
+    category:{
+        type: String
     },
     problem:{
-        type: String,
-        String:true
-    },
+    type: String
+},
     solution:{
-        type:String
-    },
+         type: String
+         },
+    partName:{
+         type: String,
+          default:'OEM Replacement Part'
+        },
+    estimatedPrice:{
+         type: String,
+          default: '$50.00'
+        },
+    storeLink:{
+         type: String,
+          default: 'https://www.rockauto.com'}
+}, { timestamps: true });
 
-    ghost_fix: {
-        type: String,
-    },
-    source:{
-        type:String,default:'mongoose_core_database'
-    }
-   
-},{
-    timestamps: true
-});
-
-const ObdCode = mongoose.model('ObdCode', obdCodeSchema)
-
-module.exports = ObdCode
+module.exports = mongoose.model('ObdCode', obdCodeSchema);

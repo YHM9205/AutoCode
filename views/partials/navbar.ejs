@@ -1,5 +1,14 @@
 <nav>
-    <a href="/">Home</a>
-    <a href="/garage">Garage</a>
-    <a href="/system">System</a>
+
+    <a href="/">Homepage</a>
+    <% if (user){ %>
+        <a href="/garage">Garage</a>
+        <a href="/auth/sign-out">Logout</a>
+
+        <% } else{ %>
+            <a href="/auth/signup">Sign up</a>
+            <a href="/auth/signin">Login</a>
+
+            <% } %>
+
 </nav>
