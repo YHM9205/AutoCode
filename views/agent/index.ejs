@@ -1,0 +1,66 @@
+<%- include('../partials/head') %>
+<h1><%= agent.name %></h1>
+
+<% if (agent.status !== 'Active') { %>
+    <p class="error">The assistant is not available right now (<%= agent.status %>).</p>
+<% } else { %>
+    <% if (sent) { %><p>Thanks, your correction was sent for review.</p><% } %>
+
+    <form action="/agent/ask" method="POST">
+        <input name="question" value="<%= question %>" maxlength="500" placeholder="My car shows P0300, what should I do?" required>
+        <button>Ask</button>
+    </form>
+
+    <% if (answer) { %>
+        <h2>Answer</h2>
+
+        <% answer.codes.forEach(c => { %>
+            <div>
+                <h3><%= c.code %> - <%= c.name %></h3>
+                <%- include('../partials/severity', { level: c.severity }) %>
+                <p><strong>Problem:</strong> <%= c.problem %></p>
+                <p><strong>Solution:</strong> <%= c.solution %></p>
+            </div>
+        <% }) %>
+
+        <% answer.unknown.forEach(code => { %>
+            <p><%= code %> is not in our database yet. Have it checked at a workshop.</p>
+        <% }) %>
+
+        <% answer.knowledge.forEach(k => { %>
+            <p><strong><%= k.topic %>:</strong> <%= k.content %></p>
+        <% }) %>
+
+        <% if (answer.openLogs.length) { %>
+            <p>Your open faults:</p>
+            <ul>
+                <% answer.openLogs.forEach(log => { %>
+                    <li>
+                        <strong><%= log.code %></strong>
+                        <% if (log.car) { %>on <a href="/garage/<%= log.car._id %>"><%= log.car.make %> <%= log.car.model %></a><% } %>
+                        (<%= log.status %>)
+                    </li>
+                <% }) %>
+            </ul>
+        <% } %>
+
+        <% if (!answer.codes.length && !answer.unknown.length && !answer.knowledge.length && !answer.openLogs.length) { %>
+            <p>I could not find an answer. Try including the code, for example P0420.</p>
+        <% } %>
+
+        <% if (agent.instructions.length) { %>
+            <ul>
+                <% agent.instructions.forEach(i => { %><li><small><%= i %></small></li><% }) %>
+            </ul>
+        <% } %>
+
+        <h3>Wrong answer?</h3>
+        <form action="/agent/feedback" method="POST">
+            <input type="hidden" name="question" value="<%= question %>">
+            <input type="hidden" name="answer" value="<%= answer.summary %>">
+            <input name="correction" maxlength="500" placeholder="What is the right answer?" required>
+            <button>Send</button>
+        </form>
+    <% } %>
+<% } %>
+<%- include('../partials/foot') %>

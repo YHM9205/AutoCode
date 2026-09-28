@@ -1,0 +1,62 @@
+<%- include('../partials/head') %>
+<h1>Agent Control</h1>
+
+<h2>Settings</h2>
+<form action="/agent/admin?_method=PUT" method="POST">
+    <label>Name <input name="name" value="<%= agent.name %>" required></label>
+    <label>Status
+        <select name="status">
+            <% statuses.forEach(s => { %>
+                <option value="<%= s %>" <%= agent.status === s ? 'selected' : '' %>><%= s %></option>
+            <% }) %>
+        </select>
+    </label>
+    <label>Instructions (one per line)
+        <textarea name="instructions" rows="4"><%= agent.instructions.join('\n') %></textarea>
+    </label>
+    <button>Save</button>
+</form>
+
+<h2>User corrections (<%= agent.feedback.length %>)</h2>
+<% if (!agent.feedback.length) { %><p>Nothing to review.</p><% } else { %>
+<table>
+    <thead><tr><th>Question</th><th>Agent answer</th><th>Correction</th><th></th></tr></thead>
+    <tbody>
+    <% agent.feedback.forEach(f => { %>
+        <tr>
+            <td><%= f.question %></td>
+            <td><%= f.answer %></td>
+            <td><%= f.correction %></td>
+            <td>
+                <form action="/agent/admin/feedback/<%= f._id %>?_method=PUT" method="POST"><button>Approve</button></form>
+                <form action="/agent/admin/feedback/<%= f._id %>?_method=DELETE" method="POST"><button class="danger">Reject</button></form>
+            </td>
+        </tr>
+    <% }) %>
+    </tbody>
+</table>
+<% } %>
+
+<h2>Knowledge</h2>
+<form action="/agent/admin/knowledge" method="POST">
+    <input name="topic" placeholder="Topic (e.g. gas cap)" required>
+    <input name="content" placeholder="What the agent should say" required>
+    <button>Add</button>
+</form>
+<% if (agent.knowledge.length) { %>
+<table>
+    <thead><tr><th>Topic</th><th>Content</th><th></th></tr></thead>
+    <tbody>
+    <% agent.knowledge.forEach(k => { %>
+        <tr>
+            <td><%= k.topic %></td>
+            <td><%= k.content %></td>
+            <td>
+                <form action="/agent/admin/knowledge/<%= k._id %>?_method=DELETE" method="POST"><button class="danger">Delete</button></form>
+            </td>
+        </tr>
+    <% }) %>
+    </tbody>
+</table>
+<% } %>
+<%- include('../partials/foot') %>

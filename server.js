@@ -12,6 +12,7 @@ const authRoutes = require("./routes/authRoutes.js");
 const obdRoutes = require("./routes/obdRoutes.js");
 const garageRoutes = require("./routes/garageRoutes.js");
 const reportRoutes = require("./routes/reportRoutes.js");
+const agentRoutes = require("./routes/agentRoutes.js");
 const isSignedIn = require("./middleware/isSignedIn.js");
 
 app.use(express.static('public'));
@@ -58,6 +59,7 @@ async function startServer() {
         app.use('/obd', obdRoutes);
         app.use('/garage', isSignedIn, garageRoutes);
         app.use('/reports', isSignedIn, reportRoutes);
+        app.use('/agent', isSignedIn, agentRoutes);
         app.use('/', indexRoutes);
 
         const PORT = process.env.PORT || 3000;

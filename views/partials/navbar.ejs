@@ -5,6 +5,8 @@
         <a href="/garage">My Garage</a>
         <a href="/garage/logs">My Log</a>
         <a href="/reports">Reports</a>
+        <a href="/agent">Assistant</a>
+        <% if (user.role === 'admin') { %><a href="/agent/admin">Agent Control</a><% } %>
         <a href="/auth/logout">Logout (<%= user.username %>)</a>
     <% } else { %>
         <a href="/auth/login">Login</a>
