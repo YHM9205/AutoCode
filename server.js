@@ -1,85 +1,58 @@
-// imports
-const express = require("express") //importing express package
-const app = express() // creates a express application
-const dotenv = require("dotenv").config() //this allows me to use my .env values in this file
-const mongoose = require("mongoose")
-const morgan = require("morgan")
-const methodOverride = require("method-override")
-const obdRoutes = require('./routes/obdRoutes')
-const { validate } = require("./models/Owner")
+const express = require("express");
+const app = express();
+require("dotenv").config();
+const mongoose = require("mongoose");
+const morgan = require("morgan");
+const methodOverride = require("method-override");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
 
+const indexRoutes = require("./routes/index.js");
+const authRoutes = require("./routes/authRoutes.js");
+const obdRoutes = require("./routes/obdRoutes.js");
 
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: false }));
+app.use(methodOverride("_method"));
+app.use(morgan("dev"));
 
-
-
-
-
-
-
-
-
-
-
-// Middleware
-app.use(express.static('public')); //all static files are in the public folder
-app.use(express.urlencoded({ extended: false })); // this will allow us to see the data being sent in the POST or PUT
-app.use(methodOverride("_method")); // Changes the method based on the ?_method
-app.use(morgan("dev")) // logs the requests as they are sent to our sever in the terminal
-app.use(express.json())
-
-
-async function conntectToDB() { //connection to the database
-    try {
-        await mongoose.connect(process.env.MONGO_URI)
-        console.log("Connected to Database")
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "auto-code-secret",
+    resave: false,
+    saveUninitialized: true,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      collectionName: "sessions"
+    }),
+    cookie: {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24
     }
-    catch (error) {
-        console.log("Error Occured", error)
+  })
+);
+
+app.use((req, res, next) => {
+  res.locals.user = req.session.user || null;
+  next();
+});
+
+app.use('/auth', authRoutes);
+app.use('/obd', obdRoutes);
+app.use('/', indexRoutes);
+
+async function startServer() { 
+    try {
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log("Connected to Database");
+        
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => {
+            console.log("Listening on port " + PORT);
+        });
+    } catch (error) {
+        console.log("Error Occured", error);
     }
 }
 
-
-conntectToDB()
-
-
-
-app.use('/', obdRoutes)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Routes go here
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-app.listen(3000, () => {
-    console.log("Listening on port " + 3000)
-}) // Listen on port 3000
-
-
+startServer();

@@ -1,9 +1,9 @@
-const ObdCode = require("../models/ObdCode")
+const ObdCode = require("../models/Diagnostic")
 
 const getAllCodes = async (req, res) => {
     try {
-        const code = await ObdCode.find({})
-        res.render('index', { cods })
+        const codes = await ObdCode.find({})
+        res.render('index', { codes })
     } catch (error) {
         res.send("Server Error")
     }

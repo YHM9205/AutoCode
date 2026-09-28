@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Code | Home</title>
+</head>
+<body>
+    
+    <header>
+        <nav>
+            <a href="/">Home</a>
+            <% if (user) { %>
+                <a href="/obd">OBD Diagnostics</a>
+                <a href="/garage">My Garage</a>
+                <a href="/auth/logout">Logout (<%= user.username %>)</a>
+            <% } else { %>
+                <a href="/auth/login">Login</a>
+                <a href="/auth/signup">Sign Up</a>
+            <% } %>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Welcome to Auto-Code 🚗</h1>
+        <p>Your ultimate bridge between your car and software diagnostics.</p>
+        
+        <% if (!user) { %>
+            <p>Sign up today to start scanning your car's OBD-II codes!</p>
+        <% } %>
+    </main>
+
+</body>
+</html>
