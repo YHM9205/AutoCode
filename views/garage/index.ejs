@@ -1,0 +1,10 @@
+<%- include('../partials/head') %>
+<h1>My Garage</h1>
+<a href="/garage/new">+ Add car</a>
+<% if (!cars.length) { %><p>No cars yet.</p><% } %>
+<ul>
+    <% cars.forEach(car => { %>
+        <li><a href="/garage/<%= car._id %>"><%= car.year %> <%= car.make %> <%= car.model %></a></li>
+    <% }) %>
+</ul>
+<%- include('../partials/foot') %>

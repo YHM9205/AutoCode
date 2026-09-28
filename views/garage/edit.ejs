@@ -1,0 +1,12 @@
+<%- include('../partials/head') %>
+<h1>Edit car</h1>
+<% if (error) { %><p class="error"><%= error %></p><% } %>
+<form action="/garage/<%= car._id %>?_method=PUT" method="POST">
+    <input name="make" value="<%= car.make %>" placeholder="Make (Toyota)" required>
+    <input name="model" value="<%= car.model %>" placeholder="Model (Camry)" required>
+    <input name="year" type="number" min="1886" value="<%= car.year %>" placeholder="Year" required>
+    <input name="vin" value="<%= car.vin || '' %>" placeholder="VIN (optional)">
+    <button>Update</button>
+    <a href="/garage/<%= car._id %>">Cancel</a>
+</form>
+<%- include('../partials/foot') %>

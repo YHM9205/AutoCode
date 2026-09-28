@@ -1,0 +1,11 @@
+<%- include('../partials/head') %>
+<h1>Add a car</h1>
+<% if (error) { %><p class="error"><%= error %></p><% } %>
+<form action="/garage" method="POST">
+    <input name="make" placeholder="Make (Toyota)" required>
+    <input name="model" placeholder="Model (Camry)" required>
+    <input name="year" type="number" min="1886" placeholder="Year" required>
+    <input name="vin" placeholder="VIN (optional)">
+    <button>Save</button>
+</form>
+<%- include('../partials/foot') %>

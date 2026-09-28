@@ -94,3 +94,14 @@ p {
 .back-btn:hover {
     text-decoration: underline;
 }
+
+/* severity badges */
+.sev { padding: 2px 8px; border-radius: 10px; font-size: 0.85em; color: #fff; }
+.sev-drive { background: #2e7d32; }
+.sev-soon { background: #ef6c00; }
+.sev-stop { background: #c62828; }
+.sev-unknown { background: #757575; }
+.resolved { opacity: 0.5; }
+.error { color: #c62828; }
+table { border-collapse: collapse; width: 100%; }
+td { padding: 6px; border-bottom: 1px solid #ddd; }

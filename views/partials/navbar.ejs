@@ -1,14 +1,13 @@
 <nav>
-
-    <a href="/">Homepage</a>
-    <% if (user){ %>
-        <a href="/garage">Garage</a>
-        <a href="/auth/sign-out">Logout</a>
-
-        <% } else{ %>
-            <a href="/auth/signup">Sign up</a>
-            <a href="/auth/signin">Login</a>
-
-            <% } %>
-
+    <a href="/">Home</a>
+    <a href="/obd">OBD Codes</a>
+    <% if (user) { %>
+        <a href="/garage">My Garage</a>
+        <a href="/garage/logs">My Log</a>
+        <a href="/reports">Reports</a>
+        <a href="/auth/logout">Logout (<%= user.username %>)</a>
+    <% } else { %>
+        <a href="/auth/login">Login</a>
+        <a href="/auth/signup">Sign Up</a>
+    <% } %>
 </nav>

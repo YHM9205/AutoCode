@@ -1,0 +1,59 @@
+<%- include('../partials/head') %>
+<h1><%= car.year %> <%= car.make %> <%= car.model %></h1>
+<% if (car.vin) { %><p>VIN: <%= car.vin %></p><% } %>
+<p><a href="/garage/<%= car._id %>/edit">Edit car</a></p>
+
+<h2>Log a Diagnostic Trouble Code (DTC)</h2>
+<% if (error) { %><p class="error"><%= error %></p><% } %>
+<form action="/garage/<%= car._id %>/logs" method="POST">
+    <input name="code" placeholder="P0300" required>
+    <input name="note" placeholder="Note (optional)">
+    <button>Log code</button>
+</form>
+
+<h2>Fault history</h2>
+<% if (!logs.length) { %><p>No codes logged for this car.</p><% } else { %>
+<table>
+    <thead>
+        <tr>
+            <th>Date Logged</th>
+            <th>DTC</th>
+            <th>Description</th>
+            <th>Severity</th>
+            <th>Technician Notes</th>
+            <th>Repair Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    <% logs.forEach(log => { const c = info[log.code]; %>
+        <tr class="<%= log.status === 'Resolved' ? 'resolved' : '' %>">
+            <td><%= log.createdAt.toLocaleDateString() %></td>
+            <td><strong><%= log.code %></strong></td>
+            <td><%= c ? c.name : 'Unknown code' %></td>
+            <td><%- include('../partials/severity', { level: log.severity }) %></td>
+            <td><%= log.note || '' %></td>
+            <td>
+                <form action="/garage/<%= car._id %>/logs/<%= log._id %>?_method=PUT" method="POST">
+                    <select name="status" onchange="this.form.submit()">
+                        <% statuses.forEach(s => { %>
+                            <option value="<%= s %>" <%= log.status === s ? 'selected' : '' %>><%= s %></option>
+                        <% }) %>
+                    </select>
+                </form>
+            </td>
+            <td>
+                <form action="/garage/<%= car._id %>/logs/<%= log._id %>?_method=DELETE" method="POST">
+                    <button class="danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+    <% }) %>
+    </tbody>
+</table>
+<% } %>
+
+<form action="/garage/<%= car._id %>?_method=DELETE" method="POST">
+    <button class="danger">Delete car</button>
+</form>
+<%- include('../partials/foot') %>

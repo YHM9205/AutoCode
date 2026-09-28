@@ -1,11 +1,15 @@
-const ObdCode = require("../models/Diagnostic")
+const ObdCode = require('../models/ObdCode');
 
 const getAllCodes = async (req, res) => {
     try {
-        const codes = await ObdCode.find({})
-        res.render('index', { codes })
+        const q = String(req.query.q || '').trim().toUpperCase();
+        const filter = q ? { code: { $regex: '^' + q.replace(/[^A-Z0-9]/g, '') } } : {};
+        const codes = await ObdCode.find(filter).sort({ code: 1 });
+        res.render('obd/index.ejs', { codes, q });
     } catch (error) {
-        res.send("Server Error")
+        console.error(error);
+        res.status(500).send('Server Error');
     }
-}
-module.exports = {getAllCodes};
+};
+
+module.exports = { getAllCodes };

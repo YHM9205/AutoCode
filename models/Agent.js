@@ -8,10 +8,9 @@ const agentSchema = new mongoose.Schema(
             enum: ['Active', 'Inactive', 'Maintenance'],
             default: 'Active'
         },
-        owner: {
+        updatedBy: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Owner',
-            required: true
+            ref: 'User'
         },
         capabilities: [{ type: String, trim: true }]
         ,
