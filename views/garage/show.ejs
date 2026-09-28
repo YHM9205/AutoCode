@@ -30,7 +30,7 @@
         <tr class="<%= log.status === 'Resolved' ? 'resolved' : '' %>">
             <td><%= log.createdAt.toLocaleDateString() %></td>
             <td><strong><%= log.code %></strong></td>
-            <td><%= c ? c.name : 'Unknown code' %></td>
+            <td><%= c ? c.name : decodeDtc(log.code) %></td>
             <td><%- include('../partials/severity', { level: log.severity }) %></td>
             <td><%= log.note || '' %></td>
             <td>

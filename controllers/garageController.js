@@ -2,6 +2,7 @@ const Car = require('../models/Car');
 const Owner = require('../models/Owner');
 const CodeLog = require('../models/CodeLog');
 const ObdCode = require('../models/ObdCode');
+const decodeDtc = require('../utils/decodeDtc');
 
 const getOwner = (req) => Owner.findOneAndUpdate(
     { user: req.session.user._id },
@@ -42,7 +43,7 @@ const showCar = async (req, res) => {
     const logs = await CodeLog.find({ car: car._id }).sort({ createdAt: -1 });
     const codes = await ObdCode.find({ code: { $in: logs.map((l) => l.code) } });
     const info = Object.fromEntries(codes.map((c) => [c.code, c]));
-    res.render('garage/show.ejs', { car, logs, info, statuses: STATUSES, error: req.query.error || null });
+    res.render('garage/show.ejs', { car, logs, info, decodeDtc, statuses: STATUSES, error: req.query.error || null });
 };
 
 const deleteCar = async (req, res) => {

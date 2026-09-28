@@ -1,6 +1,7 @@
 const Agent = require('../models/Agent');
 const ObdCode = require('../models/ObdCode');
 const CodeLog = require('../models/CodeLog');
+const decodeDtc = require('../utils/decodeDtc');
 
 const STATUSES = ['Active', 'Inactive', 'Maintenance'];
 
@@ -29,7 +30,9 @@ const ask = async (req, res) => {
 
     const found = [...new Set(question.toUpperCase().match(/\b[PBCU][0-9A-F]{4}\b/g) || [])];
     const codes = await ObdCode.find({ code: { $in: found } });
-    const unknown = found.filter((c) => !codes.some((k) => k.code === c));
+    const unknown = found
+        .filter((c) => !codes.some((k) => k.code === c))
+        .map((c) => ({ code: c, text: decodeDtc(c) }));
 
     const words = question.toLowerCase().split(/\W+/).filter((w) => w.length > 2);
     const knowledge = agent.knowledge
@@ -65,9 +68,32 @@ const sendFeedback = async (req, res) => {
 
 // ----- Admin side -----
 
+// codes users logged that are not in the database yet
+const getUnknownCodes = async () => {
+    const logged = await CodeLog.distinct('code');
+    const known = await ObdCode.distinct('code', { code: { $in: logged } });
+    return logged.filter((c) => !known.includes(c)).map((c) => ({ code: c, text: decodeDtc(c) }));
+};
+
 const admin = async (req, res) => {
     const agent = await getAgent();
-    res.render('agent/admin.ejs', { agent, statuses: STATUSES });
+    const unknownCodes = await getUnknownCodes();
+    res.render('agent/admin.ejs', { agent, statuses: STATUSES, unknownCodes });
+};
+
+const addCode = async (req, res) => {
+    const code = String(req.body.code || '').trim().toUpperCase();
+    const { name, problem, solution, severity } = req.body;
+    if (/^[PBCU][0-9A-F]{4}$/.test(code) && name) {
+        await ObdCode.updateOne(
+            { code },
+            { $set: { code, name, category: code[0], problem, solution, severity } },
+            { upsert: true, runValidators: true }
+        );
+        // logs that were saved before the code was known get its severity now
+        await CodeLog.updateMany({ code, severity: 'unknown' }, { severity });
+    }
+    res.redirect('/agent/admin');
 };
 
 const updateAgent = async (req, res) => {
@@ -126,5 +152,5 @@ const rejectFeedback = async (req, res) => {
 
 module.exports = {
     index, ask, sendFeedback,
-    admin, updateAgent, addKnowledge, deleteKnowledge, approveFeedback, rejectFeedback
+    admin, updateAgent, addKnowledge, deleteKnowledge, approveFeedback, rejectFeedback, addCode
 };

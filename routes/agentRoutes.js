@@ -28,6 +28,9 @@ router.put('/admin', isAdmin, agent.updateAgent);
 router.post('/admin/knowledge', isAdmin, agent.addKnowledge);
 router.delete('/admin/knowledge/:kid', isAdmin, agent.deleteKnowledge);
 
+// Add a code that users logged but is not in the database
+router.post('/admin/codes', isAdmin, agent.addCode);
+
 // Approve / reject a user correction
 router.put('/admin/feedback/:fid', isAdmin, agent.approveFeedback);
 router.delete('/admin/feedback/:fid', isAdmin, agent.rejectFeedback);

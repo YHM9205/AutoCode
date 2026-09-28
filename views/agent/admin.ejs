@@ -37,6 +37,24 @@
 </table>
 <% } %>
 
+<h2>Unknown codes (<%= unknownCodes.length %>)</h2>
+<% if (!unknownCodes.length) { %><p>All logged codes are in the database.</p><% } %>
+<% unknownCodes.forEach(u => { %>
+    <form action="/agent/admin/codes" method="POST">
+        <input type="hidden" name="code" value="<%= u.code %>">
+        <p><strong><%= u.code %></strong> <small><%= u.text %></small></p>
+        <input name="name" placeholder="Name" required>
+        <input name="problem" placeholder="Problem">
+        <input name="solution" placeholder="Solution">
+        <select name="severity">
+            <option value="drive">Keep driving</option>
+            <option value="soon" selected>Visit a workshop soon</option>
+            <option value="stop">Stop the car now</option>
+        </select>
+        <button>Add code</button>
+    </form>
+<% }) %>
+
 <h2>Knowledge</h2>
 <form action="/agent/admin/knowledge" method="POST">
     <input name="topic" placeholder="Topic (e.g. gas cap)" required>

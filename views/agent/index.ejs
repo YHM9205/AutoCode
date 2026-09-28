@@ -23,8 +23,8 @@
             </div>
         <% }) %>
 
-        <% answer.unknown.forEach(code => { %>
-            <p><%= code %> is not in our database yet. Have it checked at a workshop.</p>
+        <% answer.unknown.forEach(u => { %>
+            <p><strong><%= u.code %></strong>: <%= u.text %>. This code is not in our database yet, have it checked at a workshop.</p>
         <% }) %>
 
         <% answer.knowledge.forEach(k => { %>
