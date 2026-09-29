@@ -1,3 +1,18 @@
 </main>
+<script>
+    // a Show / Hide button next to every password field
+    document.querySelectorAll('input[type="password"]').forEach((input) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'show-password';
+        button.textContent = 'Show';
+        button.addEventListener('click', () => {
+            const hidden = input.type === 'password';
+            input.type = hidden ? 'text' : 'password';
+            button.textContent = hidden ? 'Hide' : 'Show';
+        });
+        input.after(button);
+    });
+</script>
 </body>
 </html>

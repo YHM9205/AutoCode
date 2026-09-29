@@ -1,7 +1,11 @@
+const mongoose = require('mongoose');
 const Agent = require('../models/Agent');
 const ObdCode = require('../models/ObdCode');
 const CodeLog = require('../models/CodeLog');
+const Owner = require('../models/Owner');
+const Car = require('../models/Car');
 const decodeDtc = require('../utils/decodeDtc');
+const { think, reply, isArabic } = require('../utils/symptomBrain');
 
 const STATUSES = ['Active', 'Inactive', 'Maintenance'];
 
@@ -13,57 +17,203 @@ const getAgent = async () => {
 
 const toLines = (text) => String(text || '').split('\n').map((l) => l.trim()).filter(Boolean);
 
+// worst first, used to pick the verdict when a question has more than one code
+const SEVERITY_ORDER = ['stop', 'soon', 'unknown', 'drive'];
+
+// the signed-in user's cars for the "which car?" dropdown
+const getMyCars = async (req) => {
+    const owner = await Owner.findOne({ user: req.session.user._id });
+    return owner ? Car.find({ owner: owner._id }).sort({ createdAt: -1 }) : [];
+};
+
+// what this user saw before for a code, and how many other drivers logged it
+const codeHistory = async (req, code, car) => {
+    const mine = await CodeLog.find({ user: req.session.user._id, code, ...(car && { car: car._id }) })
+        .sort({ updatedAt: -1 });
+    const others = await CodeLog.aggregate([
+        { $match: { code, user: { $ne: new mongoose.Types.ObjectId(String(req.session.user._id)) } } },
+        { $lookup: { from: 'cars', localField: 'car', foreignField: '_id', as: 'car' } },
+        { $unwind: '$car' },
+        ...(car ? [{ $match: { 'car.make': car.make } }] : []),
+        { $group: { _id: '$user' } },
+        { $count: 'users' }
+    ]);
+    const lastFixed = mine.find((l) => l.status === 'Resolved');
+    return {
+        times: mine.length,
+        lastFixed: lastFixed ? lastFixed.updatedAt : null,
+        openOnCar: Boolean(car) && mine.some((l) => l.status !== 'Resolved'),
+        others: others.length ? others[0].users : 0
+    };
+};
+
+// the brain's guess from a description: symptom scores, plus what drivers actually logged
+const diagnose = async (req, question, car, skip) => {
+    const thought = think(question);
+    if (!thought.matched.length) return null;
+
+    const top = thought.candidates.filter((c) => !skip.includes(c.code)).slice(0, 8);
+    const codes = top.map((c) => c.code);
+    const [info, community, mine] = await Promise.all([
+        ObdCode.find({ code: { $in: codes } }),
+        // it learns: every code drivers log (same make when a car is picked) makes that code rank higher
+        CodeLog.aggregate([
+            { $match: { code: { $in: codes } } },
+            { $lookup: { from: 'cars', localField: 'car', foreignField: '_id', as: 'car' } },
+            { $unwind: '$car' },
+            ...(car ? [{ $match: { 'car.make': car.make } }] : []),
+            { $group: { _id: '$code', count: { $sum: 1 } } }
+        ]),
+        CodeLog.distinct('code', { user: req.session.user._id, code: { $in: codes }, ...(car && { car: car._id }) })
+    ]);
+
+    const suggestions = top.map((c) => {
+        const seen = (community.find((x) => x._id === c.code) || {}).count || 0;
+        const hadBefore = mine.includes(c.code);
+        const code = info.find((k) => k.code === c.code);
+        return {
+            code: c.code,
+            name: code ? code.name : decodeDtc(c.code),
+            severity: code ? code.severity : 'unknown',
+            solution: code ? code.solution : null,
+            because: c.because,
+            seen,
+            hadBefore,
+            score: c.score + Math.min(seen, 5) * 0.6 + (hadBefore ? 2 : 0)
+        };
+    }).sort((a, b) => b.score - a.score).slice(0, 4);
+
+    const total = suggestions.reduce((sum, s) => sum + s.score, 0);
+    suggestions.forEach((s) => { s.confidence = Math.round((s.score / total) * 100); });
+
+    return { symptoms: thought.matched, urgency: thought.urgency, suggestions };
+};
+
 // ----- User side -----
 
 const index = async (req, res) => {
-    const agent = await getAgent();
-    res.render('agent/index.ejs', { agent, question: '', answer: null, sent: req.query.sent === '1' });
+    try {
+        const agent = await getAgent();
+        const cars = await getMyCars(req);
+        const chat = req.session.agentChat || { turns: [] };
+        res.render('agent/index.ejs', {
+            agent, cars, carId: chat.carId || '', question: '', answer: null, turns: chat.turns, sent: req.query.sent === '1'
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Something went wrong');
+    }
 };
 
 const ask = async (req, res) => {
-    const agent = await getAgent();
-    const question = String(req.body.question || '').trim().slice(0, 500);
+    try {
+        const agent = await getAgent();
+        const cars = await getMyCars(req);
+        const question = String(req.body.question || '').trim().slice(0, 500);
+        // only one of the user's own cars can be picked
+        const car = cars.find((c) => String(c._id) === req.body.carId) || null;
+        const carId = car ? String(car._id) : '';
 
-    if (agent.status !== 'Active' || !question) {
-        return res.render('agent/index.ejs', { agent, question, answer: null, sent: false });
+        // the conversation so far, a new one starts when the car changes
+        let chat = req.session.agentChat;
+        if (!chat || chat.carId !== carId) chat = { carId, turns: [], context: [], asked: [] };
+
+        if (agent.status !== 'Active' || !question) {
+            return res.render('agent/index.ejs', { agent, cars, carId, question, answer: null, turns: chat.turns, sent: false });
+        }
+
+        // the brain reads the last few messages together, so an answer to its question adds to what it knew
+        chat.context = [...chat.context, question].slice(-4);
+
+        const found = [...new Set(question.toUpperCase().match(/\b[PBCU][0-9A-F]{4}\b/g) || [])];
+        const known = await ObdCode.find({ code: { $in: found } });
+        const results = await Promise.all(found.map(async (code) => {
+            const info = known.find((k) => k.code === code);
+            return {
+                code,
+                name: info ? info.name : decodeDtc(code),
+                severity: info ? info.severity : 'unknown',
+                problem: info ? info.problem : null,
+                solution: info ? info.solution : 'This code is not in our database yet, have it checked at a workshop.',
+                history: await codeHistory(req, code, car)
+            };
+        }));
+        const brain = await diagnose(req, chat.context, car, found);
+        const levels = [...results.map((r) => r.severity), ...(brain ? [brain.urgency] : [])];
+        const verdict = SEVERITY_ORDER.find((s) => levels.includes(s)) || null;
+
+        // split on spaces and punctuation so Arabic words count too
+        const words = question.toLowerCase().split(/[\s.,!?؟،:;()]+/).filter((w) => w.length > 2);
+        const knowledge = agent.knowledge
+            .filter((k) => k.approved)
+            .filter((k) => words.some((w) => `${k.topic} ${k.content}`.toLowerCase().includes(w)))
+            .slice(0, 3);
+
+        // no code or symptom in the question, so show the user's open faults instead
+        const openLogs = found.length || brain
+            ? []
+            : await CodeLog.find({
+                user: req.session.user._id,
+                status: { $ne: 'Resolved' },
+                ...(car && { car: car._id })
+            }).populate('car').limit(5);
+
+        // a code the user typed comes first, otherwise the brain's best guess
+        const top = results.length
+            ? { code: results[0].code, name: results[0].name, hadBefore: results[0].history.times > 0, seen: results[0].history.others }
+            : brain && brain.suggestions[0];
+        const said = top || brain
+            ? reply({
+                lang: isArabic(question) ? 'ar' : 'en',
+                symptoms: brain ? brain.symptoms : [],
+                top,
+                urgency: verdict,
+                carName: car ? `${car.make} ${car.model}` : null,
+                asked: chat.asked
+            })
+            : null;
+
+        const previous = chat.turns;
+        if (said) {
+            if (said.followUp) chat.asked = [...chat.asked, said.followUp.id];
+            chat.turns = [...chat.turns, { q: question, a: said.text, f: said.followUp ? said.followUp.text : null }].slice(-6);
+        }
+        req.session.agentChat = chat;
+
+        const summary = [...results, ...(brain ? brain.suggestions : [])]
+            .map((r) => `${r.code}: ${r.name}`).join(', ') || 'No matching code';
+
+        res.render('agent/index.ejs', {
+            agent, cars, carId, car, question, turns: previous,
+            answer: { said, results, brain, verdict, knowledge, openLogs, summary },
+            sent: false
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Something went wrong');
     }
+};
 
-    const found = [...new Set(question.toUpperCase().match(/\b[PBCU][0-9A-F]{4}\b/g) || [])];
-    const codes = await ObdCode.find({ code: { $in: found } });
-    const unknown = found
-        .filter((c) => !codes.some((k) => k.code === c))
-        .map((c) => ({ code: c, text: decodeDtc(c) }));
-
-    const words = question.toLowerCase().split(/\W+/).filter((w) => w.length > 2);
-    const knowledge = agent.knowledge
-        .filter((k) => k.approved)
-        .filter((k) => words.some((w) => `${k.topic} ${k.content}`.toLowerCase().includes(w)))
-        .slice(0, 3);
-
-    // no code in the question, so show the user's open faults instead
-    const openLogs = found.length
-        ? []
-        : await CodeLog.find({ user: req.session.user._id, status: { $ne: 'Resolved' } }).populate('car').limit(5);
-
-    const summary = codes.map((c) => `${c.code}: ${c.name}`).join(', ') || 'No matching code';
-
-    res.render('agent/index.ejs', {
-        agent,
-        question,
-        answer: { codes, unknown, knowledge, openLogs, summary },
-        sent: false
-    });
+// start a new conversation
+const newChat = (req, res) => {
+    delete req.session.agentChat;
+    res.redirect('/agent');
 };
 
 const sendFeedback = async (req, res) => {
-    const agent = await getAgent();
-    const question = String(req.body.question || '').trim();
-    const correction = String(req.body.correction || '').trim();
-    if (question && correction) {
-        agent.feedback.push({ question, answer: req.body.answer || 'No answer', correction });
-        await agent.save();
+    try {
+        const agent = await getAgent();
+        const question = String(req.body.question || '').trim();
+        const correction = String(req.body.correction || '').trim();
+        if (question && correction) {
+            agent.feedback.push({ question, answer: req.body.answer || 'No answer', correction });
+            await agent.save();
+        }
+        res.redirect('/agent?sent=1');
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Something went wrong');
     }
-    res.redirect('/agent?sent=1');
 };
 
 // ----- Admin side -----
@@ -76,81 +226,116 @@ const getUnknownCodes = async () => {
 };
 
 const admin = async (req, res) => {
-    const agent = await getAgent();
-    const unknownCodes = await getUnknownCodes();
-    res.render('agent/admin.ejs', { agent, statuses: STATUSES, unknownCodes });
+    try {
+        const agent = await getAgent();
+        const unknownCodes = await getUnknownCodes();
+        res.render('agent/admin.ejs', { agent, statuses: STATUSES, unknownCodes });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Something went wrong');
+    }
 };
 
 const addCode = async (req, res) => {
-    const code = String(req.body.code || '').trim().toUpperCase();
-    const { name, problem, solution, severity } = req.body;
-    if (/^[PBCU][0-9A-F]{4}$/.test(code) && name) {
-        await ObdCode.updateOne(
-            { code },
-            { $set: { code, name, category: code[0], problem, solution, severity } },
-            { upsert: true, runValidators: true }
-        );
-        // logs that were saved before the code was known get its severity now
-        await CodeLog.updateMany({ code, severity: 'unknown' }, { severity });
+    try {
+        const code = String(req.body.code || '').trim().toUpperCase();
+        const { name, problem, solution, severity } = req.body;
+        if (/^[PBCU][0-9A-F]{4}$/.test(code) && name) {
+            await ObdCode.updateOne(
+                { code },
+                { $set: { code, name, category: code[0], problem, solution, severity } },
+                { upsert: true, runValidators: true }
+            );
+            // logs that were saved before the code was known get its severity now
+            await CodeLog.updateMany({ code, severity: 'unknown' }, { severity });
+        }
+        res.redirect('/agent/admin');
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Something went wrong');
     }
-    res.redirect('/agent/admin');
 };
 
 const updateAgent = async (req, res) => {
-    const agent = await getAgent();
-    if (req.body.name) agent.name = req.body.name;
-    if (STATUSES.includes(req.body.status)) agent.status = req.body.status;
-    agent.instructions = toLines(req.body.instructions);
-    agent.updatedBy = req.session.user._id;
-    await agent.save();
-    res.redirect('/agent/admin');
+    try {
+        const agent = await getAgent();
+        if (req.body.name) agent.name = req.body.name;
+        if (STATUSES.includes(req.body.status)) agent.status = req.body.status;
+        agent.instructions = toLines(req.body.instructions);
+        agent.updatedBy = req.session.user._id;
+        await agent.save();
+        res.redirect('/agent/admin');
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Something went wrong');
+    }
 };
 
 const addKnowledge = async (req, res) => {
-    const agent = await getAgent();
-    const { topic, content } = req.body;
-    if (topic && content) {
-        agent.knowledge.push({ topic, content, source: 'user', approved: true });
-        agent.updatedBy = req.session.user._id;
-        await agent.save();
+    try {
+        const agent = await getAgent();
+        const { topic, content } = req.body;
+        if (topic && content) {
+            agent.knowledge.push({ topic, content, source: 'user', approved: true });
+            agent.updatedBy = req.session.user._id;
+            await agent.save();
+        }
+        res.redirect('/agent/admin');
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Something went wrong');
     }
-    res.redirect('/agent/admin');
 };
 
 const deleteKnowledge = async (req, res) => {
-    const agent = await getAgent();
-    const item = agent.knowledge.id(req.params.kid);
-    if (item) {
-        item.deleteOne();
-        await agent.save();
+    try {
+        const agent = await getAgent();
+        const item = agent.knowledge.id(req.params.kid);
+        if (item) {
+            item.deleteOne();
+            await agent.save();
+        }
+        res.redirect('/agent/admin');
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Something went wrong');
     }
-    res.redirect('/agent/admin');
 };
 
 // approving a correction turns it into knowledge the agent can use
 const approveFeedback = async (req, res) => {
-    const agent = await getAgent();
-    const item = agent.feedback.id(req.params.fid);
-    if (item) {
-        agent.knowledge.push({ topic: item.question, content: item.correction, source: 'user', approved: true });
-        item.deleteOne();
-        agent.updatedBy = req.session.user._id;
-        await agent.save();
+    try {
+        const agent = await getAgent();
+        const item = agent.feedback.id(req.params.fid);
+        if (item) {
+            agent.knowledge.push({ topic: item.question, content: item.correction, source: 'user', approved: true });
+            item.deleteOne();
+            agent.updatedBy = req.session.user._id;
+            await agent.save();
+        }
+        res.redirect('/agent/admin');
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Something went wrong');
     }
-    res.redirect('/agent/admin');
 };
 
 const rejectFeedback = async (req, res) => {
-    const agent = await getAgent();
-    const item = agent.feedback.id(req.params.fid);
-    if (item) {
-        item.deleteOne();
-        await agent.save();
+    try {
+        const agent = await getAgent();
+        const item = agent.feedback.id(req.params.fid);
+        if (item) {
+            item.deleteOne();
+            await agent.save();
+        }
+        res.redirect('/agent/admin');
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Something went wrong');
     }
-    res.redirect('/agent/admin');
 };
 
 module.exports = {
-    index, ask, sendFeedback,
+    index, ask, newChat, sendFeedback,
     admin, updateAgent, addKnowledge, deleteKnowledge, approveFeedback, rejectFeedback, addCode
 };

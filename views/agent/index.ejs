@@ -6,33 +6,123 @@
 <% } else { %>
     <% if (sent) { %><p>Thanks, your correction was sent for review.</p><% } %>
 
-    <form action="/agent/ask" method="POST">
-        <input name="question" value="<%= question %>" maxlength="500" placeholder="My car shows P0300, what should I do?" required>
-        <button>Ask</button>
+    <% const thread = [...turns, ...(answer && answer.said ? [{ q: question, a: answer.said.text, f: answer.said.followUp && answer.said.followUp.text, now: true }] : [])]; %>
+    <% if (thread.length) { %>
+        <div class="chat">
+            <% thread.forEach(t => { %>
+                <p class="bubble me" dir="auto"><%= t.q %></p>
+                <div class="bubble bot<%= t.now ? ' now' : '' %>" dir="auto">
+                    <p><%= t.a %></p>
+                    <% if (t.f) { %><p class="ask"><%= t.f %></p><% } %>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+
+    <form action="/agent/ask" method="POST" class="search-form">
+        <% if (cars.length) { %>
+            <select name="carId">
+                <option value="">All my cars</option>
+                <% cars.forEach(c => { %>
+                    <option value="<%= c._id %>" <%= carId === String(c._id) ? 'selected' : '' %>><%= c.year %> <%= c.make %> <%= c.model %></option>
+                <% }) %>
+            </select>
+        <% } %>
+        <% const waiting = answer && answer.said && answer.said.followUp; %>
+        <input name="question" dir="auto" maxlength="500" autofocus required
+            placeholder="<%= waiting ? 'Answer the question, or describe something else' : 'Describe the problem or type a code: السيارة ترجف وتطفي / P0300' %>">
+        <button>Send</button>
     </form>
+    <% if (thread.length) { %>
+        <form action="/agent/new" method="POST" class="new-chat">
+            <button>New conversation</button>
+        </form>
+    <% } %>
 
     <% if (answer) { %>
-        <h2>Answer</h2>
+        <% const carName = car ? `${car.make} ${car.model}` : null; %>
+        <% const verdicts = {
+            stop: 'Stop the car now',
+            soon: 'Visit a workshop soon',
+            unknown: 'Have it checked at a workshop',
+            drive: 'Safe to keep driving'
+        }; %>
 
-        <% answer.codes.forEach(c => { %>
-            <div>
-                <h3><%= c.code %> - <%= c.name %></h3>
-                <%- include('../partials/severity', { level: c.severity }) %>
-                <p><strong>Problem:</strong> <%= c.problem %></p>
-                <p><strong>Solution:</strong> <%= c.solution %></p>
+        <% if (answer.verdict) { %>
+            <div class="verdict verdict-<%= answer.verdict %>">
+                <%= verdicts[answer.verdict] %><% if (carName) { %><small>Your <%= carName %></small><% } %>
+            </div>
+        <% } %>
+
+        <% answer.results.forEach(r => { %>
+            <div class="code-card">
+                <h3><%= r.code %> - <%= r.name %></h3>
+                <%- include('../partials/severity', { level: r.severity }) %>
+                <% if (r.problem) { %><p><strong>Problem:</strong> <%= r.problem %></p><% } %>
+                <p><strong>What to do:</strong> <%= r.solution %></p>
+
+                <% const h = r.history; %>
+                <% if (h.times) { %>
+                    <p class="history">
+                        You logged this <%= h.times === 1 ? 'once' : `${h.times} times` %> on <%= carName ? `your ${carName}` : 'your cars' %><% if (h.lastFixed) { %>, last fixed <%= h.lastFixed.toLocaleDateString() %><% } %>.
+                        <% if (h.times > 1 && h.lastFixed) { %><strong>It keeps coming back, the last repair may not have fixed the cause.</strong><% } %>
+                    </p>
+                <% } %>
+                <% if (h.others) { %>
+                    <p class="history"><%= h.others %> other <%= car ? `${car.make} owner` : 'driver' %><%= h.others === 1 ? '' : 's' %> logged this code.</p>
+                <% } %>
+
+                <% if (car) { %>
+                    <% if (h.openOnCar) { %>
+                        <a href="/garage/<%= car._id %>">Already open on your <%= carName %></a>
+                    <% } else { %>
+                        <form action="/garage/<%= car._id %>/logs" method="POST">
+                            <input type="hidden" name="code" value="<%= r.code %>">
+                            <button>Log on my <%= carName %></button>
+                        </form>
+                    <% } %>
+                <% } %>
             </div>
         <% }) %>
 
-        <% answer.unknown.forEach(u => { %>
-            <p><strong><%= u.code %></strong>: <%= u.text %>. This code is not in our database yet, have it checked at a workshop.</p>
-        <% }) %>
+        <% if (answer.brain) { %>
+            <section class="brain">
+                <h2>What I understood</h2>
+                <div class="symptoms">
+                    <% answer.brain.symptoms.forEach(s => { %><span class="chip"><%= s.label %></span><% }) %>
+                </div>
+                <p class="brain-lead">Most likely causes<%= carName ? ` on your ${carName}` : '' %>:</p>
+                <% answer.brain.suggestions.forEach(s => { %>
+                    <div class="guess">
+                        <div class="guess-head">
+                            <strong><%= s.code %></strong>
+                            <span class="guess-name"><%= s.name %></span>
+                            <%- include('../partials/severity', { level: s.severity }) %>
+                        </div>
+                        <div class="meter" role="img" aria-label="<%= s.confidence %>% likely"><i style="width: <%= s.confidence %>%"></i></div>
+                        <p class="why">
+                            <%= s.confidence %>% likely. Matches: <%= s.because.join(', ') %><% if (s.seen) { %>. Logged <%= s.seen %> time<%= s.seen === 1 ? '' : 's' %> by <%= car ? `${car.make} owners` : 'drivers' %><% } %><% if (s.hadBefore) { %>. <strong>Your car had this before</strong><% } %>.
+                        </p>
+                        <% if (s.solution) { %><p class="why"><strong>What to do:</strong> <%= s.solution %></p><% } %>
+                        <% if (car) { %>
+                            <form action="/garage/<%= car._id %>/logs" method="POST">
+                                <input type="hidden" name="code" value="<%= s.code %>">
+                                <input type="hidden" name="note" value="Suggested by the assistant: <%= answer.brain.symptoms.map(x => x.label).join(', ') %>">
+                                <button>Log on my <%= carName %></button>
+                            </form>
+                        <% } %>
+                    </div>
+                <% }) %>
+                <p class="why">A scanner reading is the only way to be sure. Plug one in and ask me about the code it shows.</p>
+            </section>
+        <% } %>
 
         <% answer.knowledge.forEach(k => { %>
             <p><strong><%= k.topic %>:</strong> <%= k.content %></p>
         <% }) %>
 
         <% if (answer.openLogs.length) { %>
-            <p>Your open faults:</p>
+            <p>Open faults on <%= carName ? `your ${carName}` : 'your cars' %>:</p>
             <ul>
                 <% answer.openLogs.forEach(log => { %>
                     <li>
@@ -44,8 +134,8 @@
             </ul>
         <% } %>
 
-        <% if (!answer.codes.length && !answer.unknown.length && !answer.knowledge.length && !answer.openLogs.length) { %>
-            <p>I could not find an answer. Try including the code, for example P0420.</p>
+        <% if (!answer.results.length && !answer.brain && !answer.knowledge.length && !answer.openLogs.length) { %>
+            <p>I could not find an answer. Describe what the car is doing (shaking, overheating, hard to start...) or type the code, for example P0420.</p>
         <% } %>
 
         <% if (agent.instructions.length) { %>

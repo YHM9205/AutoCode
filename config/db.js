@@ -6,7 +6,9 @@ async function connectToDB(){ //connection to the database
         console.log("Connected to Database")
     }
     catch(error){
-        console.log("Error Occured",error)
+        // stop here, the app can not work without the database
+        console.log("Could not connect to the database:", error.message)
+        process.exit(1)
     }
 }
 

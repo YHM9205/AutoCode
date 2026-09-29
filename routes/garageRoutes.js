@@ -12,10 +12,6 @@ router.get('/', garage.index);
 // New: show the "add a car" form
 router.get('/new', garage.newCar);
 
-// My Log: every code this user logged across all cars
-// (must stay above /:id so "logs" is not read as a car id)
-router.get('/logs', garage.myLogs);
-
 // Create: save a new car
 router.post('/', garage.createCar);
 

@@ -1,0 +1,101 @@
+<%- include('../partials/head') %>
+<% const canSeeList = ['admin', 'superowner'].includes(user.role); %>
+<% const cantDeleteSelf = isMe && ['moderator', 'admin', 'superowner'].includes(shownUser.role); %>
+<h1><%= isMe ? 'My Profile' : shownUser.username %></h1>
+<p>ID: <%= shownUser._id %></p>
+<p>Role: <%= shownUser.role %></p>
+<% if (hasAgentAccess) { %>
+    <p>Agent Control: <%= shownUser.agentAccess === 'temporary' ? `until ${shownUser.agentAccessUntil.toLocaleString()}` : 'permanent' %></p>
+<% } %>
+<% if (error) { %><p class="error"><%= error %></p><% } %>
+<% if (saved) { %><p class="saved">Saved.</p><% } %>
+
+<h2>Update</h2>
+<form action="/users/<%= shownUser._id %>?_method=PUT" method="POST">
+    <input name="username" value="<%= shownUser.username %>" required>
+    <input name="email" type="email" value="<%= shownUser.email %>" required>
+    <% if (isSuperOwner && !isMe) { %>
+        <select name="role">
+            <% roles.forEach(r => { %>
+                <option value="<%= r %>" <%= shownUser.role === r ? 'selected' : '' %>><%= r %></option>
+            <% }) %>
+        </select>
+    <% } %>
+    <button>Update</button>
+</form>
+
+<% if (isSuperOwner && isStaffTarget) { %>
+<h2>Agent Control access</h2>
+<form action="/users/<%= shownUser._id %>/agent-access?_method=PUT" method="POST">
+    <select name="agentAccess" id="agentAccess">
+        <option value="none" <%= shownUser.agentAccess === 'none' ? 'selected' : '' %>>No access</option>
+        <option value="temporary" <%= shownUser.agentAccess === 'temporary' ? 'selected' : '' %>>Temporary</option>
+        <option value="permanent" <%= shownUser.agentAccess === 'permanent' ? 'selected' : '' %>>Permanent</option>
+    </select>
+    <label id="accessUntil" <%= shownUser.agentAccess === 'temporary' ? '' : 'hidden' %>>Until
+        <input name="agentAccessUntil" type="datetime-local"
+            value="<%= shownUser.agentAccessUntil ? shownUser.agentAccessUntil.toISOString().slice(0, 16) : '' %>">
+    </label>
+    <button>Save access</button>
+</form>
+<script>
+    // the end date only matters for temporary access
+    const access = document.getElementById('agentAccess');
+    access.addEventListener('change', () => {
+        document.getElementById('accessUntil').hidden = access.value !== 'temporary';
+    });
+</script>
+<% } %>
+
+<h2><%= isMe ? 'Change password' : 'Set a new password' %></h2>
+<form action="/users/<%= shownUser._id %>/password?_method=PUT" method="POST">
+    <% if (isMe) { %>
+        <input name="currentPassword" type="password" placeholder="Current password" required>
+    <% } %>
+    <input name="newPassword" type="password" placeholder="New password (min 6 characters)" minlength="6" required>
+    <input name="confirmPassword" type="password" placeholder="Confirm new password" minlength="6" required>
+    <button>Save password</button>
+</form>
+
+<% if (isMe || isSuperOwner) { %>
+<h2>Cars (<%= cars.length %>)</h2>
+<% if (!cars.length) { %><p>No cars.</p><% } %>
+<ul>
+    <% cars.forEach(car => { %>
+        <li><%= car.year %> <%= car.make %> <%= car.model %><%= car.vin ? ` (${car.vin})` : '' %></li>
+    <% }) %>
+</ul>
+
+<h2>Logs (<%= logs.length %>)</h2>
+<% if (logs.length) { %>
+<table>
+    <thead>
+        <tr><th>Date Logged</th><th>Vehicle</th><th>DTC</th><th>Severity</th><th>Repair Status</th></tr>
+    </thead>
+    <% logs.forEach(log => { %>
+        <tr>
+            <td><%= log.createdAt.toLocaleDateString() %></td>
+            <td>
+                <% if (log.car && isMe) { %><a href="/garage/<%= log.car._id %>"><%= log.car.make %> <%= log.car.model %></a>
+                <% } else if (log.car) { %><%= log.car.make %> <%= log.car.model %><% } %>
+            </td>
+            <td><strong><%= log.code %></strong></td>
+            <td><%- include('../partials/severity', { level: log.severity }) %></td>
+            <td><%= log.status %></td>
+        </tr>
+    <% }) %>
+</table>
+<% } %>
+<% } %>
+
+<% if (!cantDeleteSelf) { %>
+<details class="danger-zone">
+    <summary><%= isMe ? 'Delete my account' : 'Delete user' %></summary>
+    <p>This deletes <%= isMe ? 'your account' : shownUser.username %> and all <%= isMe ? 'your' : 'their' %> cars and logs. It can not be undone.</p>
+    <form action="/users/<%= shownUser._id %>?_method=DELETE" method="POST">
+        <button class="danger">Yes, delete</button>
+    </form>
+</details>
+<% } %>
+<% if (canSeeList) { %><a href="/users">Back to users</a><% } %>
+<%- include('../partials/foot') %>

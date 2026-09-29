@@ -2,9 +2,17 @@
 <h1>Edit car</h1>
 <% if (error) { %><p class="error"><%= error %></p><% } %>
 <form action="/garage/<%= car._id %>?_method=PUT" method="POST">
-    <input name="make" value="<%= car.make %>" placeholder="Make (Toyota)" required>
+    <select name="make" required>
+        <% (makes.includes(car.make) ? makes : [car.make, ...makes]).forEach(m => { %>
+            <option value="<%= m %>" <%= car.make === m ? 'selected' : '' %>><%= m %></option>
+        <% }) %>
+    </select>
     <input name="model" value="<%= car.model %>" placeholder="Model (Camry)" required>
-    <input name="year" type="number" min="1886" value="<%= car.year %>" placeholder="Year" required>
+    <select name="year" required>
+        <% (years.includes(car.year) ? years : [car.year, ...years]).forEach(y => { %>
+            <option value="<%= y %>" <%= car.year === y ? 'selected' : '' %>><%= y %></option>
+        <% }) %>
+    </select>
     <input name="vin" value="<%= car.vin || '' %>" placeholder="VIN (optional)">
     <button>Update</button>
     <a href="/garage/<%= car._id %>">Cancel</a>

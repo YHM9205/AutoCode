@@ -1,0 +1,28 @@
+<%- include('../partials/head') %>
+<h1>Users</h1>
+<% if (user.role === 'superowner') { %><p><a href="/users/new" class="button-link">+ Add user</a></p><% } %>
+<form action="/users" method="GET" class="search-form">
+    <input name="id" value="<%= id %>" placeholder="Search by user id" required>
+    <button>Search</button>
+</form>
+<% if (error) { %><p class="error"><%= error %></p><% } %>
+<table>
+    <thead>
+        <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Agent Control</th><th>Joined</th></tr>
+    </thead>
+    <% users.forEach(u => { %>
+        <tr>
+            <td><a href="/users/<%= u._id %>"><%= u._id %></a></td>
+            <td><%= u.username %></td>
+            <td><%= u.email %></td>
+            <td><%= u.role %></td>
+            <td>
+                <% if (!canControlAgent(u)) { %>-
+                <% } else if (u.agentAccess === 'temporary') { %>Until <%= u.agentAccessUntil.toLocaleDateString() %>
+                <% } else { %>Permanent<% } %>
+            </td>
+            <td><%= u.createdAt.toLocaleDateString() %></td>
+        </tr>
+    <% }) %>
+</table>
+<%- include('../partials/foot') %>

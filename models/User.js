@@ -26,8 +26,17 @@ const userSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ['user', 'owner', 'technician', 'admin'],
+            enum: ['user', 'owner', 'technician', 'moderator', 'admin', 'superowner'],
             default: 'user'
+        },
+        // access to Agent Control, given by the super owner
+        agentAccess: {
+            type: String,
+            enum: ['none', 'temporary', 'permanent'],
+            default: 'none'
+        },
+        agentAccessUntil: {
+            type: Date
         }
     },
     { timestamps: true }

@@ -2,9 +2,19 @@
 <h1>Add a car</h1>
 <% if (error) { %><p class="error"><%= error %></p><% } %>
 <form action="/garage" method="POST">
-    <input name="make" placeholder="Make (Toyota)" required>
+    <select name="make" required>
+        <option value="" disabled selected>Make</option>
+        <% makes.forEach(m => { %>
+            <option value="<%= m %>"><%= m %></option>
+        <% }) %>
+    </select>
     <input name="model" placeholder="Model (Camry)" required>
-    <input name="year" type="number" min="1886" placeholder="Year" required>
+    <select name="year" required>
+        <option value="" disabled selected>Year</option>
+        <% years.forEach(y => { %>
+            <option value="<%= y %>"><%= y %></option>
+        <% }) %>
+    </select>
     <input name="vin" placeholder="VIN (optional)">
     <button>Save</button>
 </form>

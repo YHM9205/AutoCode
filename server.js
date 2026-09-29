@@ -17,8 +17,8 @@ const indexRoutes = require("./routes/index.js");
 const authRoutes = require("./routes/authRoutes.js");
 const obdRoutes = require("./routes/obdRoutes.js");
 const garageRoutes = require("./routes/garageRoutes.js");
-const reportRoutes = require("./routes/reportRoutes.js");
 const agentRoutes = require("./routes/agentRoutes.js");
+const userRoutes = require("./routes/userRoutes.js");
 
 
 // Middleware
@@ -50,8 +50,8 @@ app.use(passUserToView)
 app.use('/auth', authRoutes)
 app.use('/obd', obdRoutes)
 app.use('/garage', isSignedIn, garageRoutes)
-app.use('/reports', isSignedIn, reportRoutes)
 app.use('/agent', isSignedIn, agentRoutes)
+app.use('/users', isSignedIn, userRoutes)
 app.use('/', indexRoutes)
 
 
