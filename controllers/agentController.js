@@ -5,7 +5,7 @@ const CodeLog = require('../models/CodeLog');
 const Owner = require('../models/Owner');
 const Car = require('../models/Car');
 const decodeDtc = require('../utils/decodeDtc');
-const { think, reply, isArabic } = require('../utils/symptomBrain');
+const { think, reply, isArabic, findPart, partReply } = require('../utils/symptomBrain');
 
 const STATUSES = ['Active', 'Inactive', 'Maintenance'];
 
@@ -137,7 +137,7 @@ const ask = async (req, res) => {
             .filter((k) => words.some((w) => `${k.topic} ${k.content}`.toLowerCase().includes(w)))
             .slice(0, 3);
 
-        const openLogs = found.length || brain
+        const openLogs = found.length || brain || findPart(question)
             ? []
             : await CodeLog.find({
                 user: req.session.user._id,
@@ -148,15 +148,23 @@ const ask = async (req, res) => {
         const top = results.length
             ? { code: results[0].code, name: results[0].name, hadBefore: results[0].history.times > 0, seen: results[0].history.others }
             : brain && brain.suggestions[0];
-        const said = top || brain
+        const lang = isArabic(question) ? 'ar' : 'en';
+        const part = findPart(question);
+        const diagnosis = top || brain
             ? reply({
-                lang: isArabic(question) ? 'ar' : 'en',
+                lang,
                 symptoms: brain ? brain.symptoms : [],
                 top,
                 urgency: verdict,
                 carName: car ? `${car.make} ${car.model}` : null,
                 asked: chat.asked
             })
+            : null;
+        const said = part || diagnosis
+            ? {
+                text: [part && partReply(part, lang), diagnosis && diagnosis.text].filter(Boolean).join(' '),
+                followUp: diagnosis ? diagnosis.followUp : null
+            }
             : null;
 
         const previous = chat.turns;

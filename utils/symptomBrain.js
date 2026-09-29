@@ -230,4 +230,145 @@ const reply = ({ lang, symptoms, top, urgency, carName, asked = [] }) => {
     };
 };
 
-module.exports = { think, reply, isArabic, familyOf, SYMPTOMS, URGENCY_ORDER };
+const PARTS = [
+    {
+        id: 'o2', ar: 'حساس الأكسجين (O2 sensor)', en: 'Oxygen sensor (O2 sensor)',
+        words: ['اكسجين', 'الاكسجين', 'حساس الشكمان', 'o2', 'oxygen', 'lambda'],
+        whereAr: 'مركّب على الشكمان تحت السيارة. عادة واحد قبل الدبة (الكتلايزر) وواحد بعدها، وفي المكاين V6 وV8 تلقى 4.',
+        whereEn: 'Screwed into the exhaust pipe under the car. Usually one before the catalytic converter and one after it; V6 and V8 engines have four.',
+        jobAr: 'يقيس الأكسجين في العادم عشان الكمبيوتر يضبط خليط البنزين.',
+        jobEn: 'Measures oxygen in the exhaust so the computer can adjust the fuel mix.',
+        codes: ['P0130', 'P0133', 'P0135', 'P0136', 'P0141']
+    },
+    {
+        id: 'maf', ar: 'حساس الهوا (MAF)', en: 'Mass air flow sensor (MAF)',
+        words: ['حساس الهوا', 'حساس الهواء', 'maf', 'air flow', 'airflow'],
+        whereAr: 'بين فلتر الهوا وبوابة الهوا (الثروتل)، على ماسورة الهوا الداخلة للمكينة.',
+        whereEn: 'Between the air filter box and the throttle body, on the intake pipe.',
+        jobAr: 'يقيس كمية الهوا الداخلة للمكينة.',
+        jobEn: 'Measures how much air goes into the engine.',
+        codes: ['P0100', 'P0101', 'P0102', 'P0103']
+    },
+    {
+        id: 'throttle', ar: 'بوابة الهوا (Throttle body)', en: 'Throttle body',
+        words: ['ثروتل', 'الثروتل', 'بوابة الهوا', 'بوابه الهوا', 'throttle'],
+        whereAr: 'على مدخل الهوا فوق المكينة، بعد حساس الهوا.',
+        whereEn: 'On the air intake on top of the engine, after the MAF sensor.',
+        jobAr: 'تفتح وتسكر حسب دوسة البنزين عشان تتحكم بالهوا.',
+        jobEn: 'Opens and closes with the gas pedal to control air.',
+        codes: ['P0121', 'P0122', 'P0505', 'P2135']
+    },
+    {
+        id: 'plugs', ar: 'البواجي (الشمعات)', en: 'Spark plugs',
+        words: ['بواجي', 'البواجي', 'بوجي', 'شمعات', 'الشمعات', 'spark plug', 'plugs'],
+        whereAr: 'فوق المكينة، واحدة لكل سلندر، تحت الكويلات.',
+        whereEn: 'On top of the engine, one per cylinder, under the ignition coils.',
+        jobAr: 'تعطي الشرارة اللي تحرق البنزين.',
+        jobEn: 'Make the spark that burns the fuel.',
+        codes: ['P0300', 'P0301', 'P0302', 'P0303', 'P0304']
+    },
+    {
+        id: 'coils', ar: 'الكويلات', en: 'Ignition coils',
+        words: ['كويل', 'الكويل', 'كويلات', 'الكويلات', 'coil'],
+        whereAr: 'فوق المكينة، فوق كل بوجي مباشرة.',
+        whereEn: 'On top of the engine, sitting right on each spark plug.',
+        jobAr: 'ترفع الكهربا عشان البوجي يطلع شرارة.',
+        jobEn: 'Boost the voltage so the spark plug can fire.',
+        codes: ['P0351', 'P0352', 'P0353', 'P0300']
+    },
+    {
+        id: 'cat', ar: 'الدبة (الكتلايزر)', en: 'Catalytic converter',
+        words: ['الدبه', 'دبه', 'كتلايزر', 'الكتلايزر', 'catalytic', 'converter', 'catalyst'],
+        whereAr: 'تحت السيارة على الشكمان، قريبة من المكينة وبين حساسين الأكسجين.',
+        whereEn: 'Under the car on the exhaust, close to the engine, between the two oxygen sensors.',
+        jobAr: 'تنظف غازات العادم قبل ما تطلع.',
+        jobEn: 'Cleans the exhaust gases before they leave the car.',
+        codes: ['P0420', 'P0430']
+    },
+    {
+        id: 'thermostat', ar: 'الثرموستات', en: 'Thermostat',
+        words: ['ثرموستات', 'الثرموستات', 'ثيرموستات', 'thermostat'],
+        whereAr: 'في مكان دخول ماسورة الرديتر العلوية للمكينة، تحت غطا صغير.',
+        whereEn: 'Where the upper radiator hose meets the engine, under a small housing.',
+        jobAr: 'تفتح طريق الماي للرديتر لما المكينة تحمى.',
+        jobEn: 'Opens the coolant path to the radiator when the engine warms up.',
+        codes: ['P0128', 'P0125']
+    },
+    {
+        id: 'fan', ar: 'مروحة الرديتر', en: 'Radiator fan',
+        words: ['مروحه', 'المروحه', 'مروحة الرديتر', 'فان', 'radiator fan', 'cooling fan'],
+        whereAr: 'ورا الرديتر في مقدمة السيارة.',
+        whereEn: 'Behind the radiator at the front of the car.',
+        jobAr: 'تسحب هوا على الرديتر عشان تبرد الماي.',
+        jobEn: 'Pulls air through the radiator to cool the coolant.',
+        codes: ['P0480', 'P0481']
+    },
+    {
+        id: 'coolantSensor', ar: 'حساس حرارة الماي', en: 'Coolant temperature sensor',
+        words: ['حساس الحراره', 'حساس حرارة الماي', 'حساس الماي', 'coolant sensor', 'ect sensor', 'temperature sensor'],
+        whereAr: 'على المكينة قريب من الثرموستات.',
+        whereEn: 'On the engine, near the thermostat housing.',
+        jobAr: 'يقول للكمبيوتر حرارة المكينة.',
+        jobEn: 'Tells the computer the engine temperature.',
+        codes: ['P0115', 'P0117', 'P0118']
+    },
+    {
+        id: 'crank', ar: 'حساس الكرنك', en: 'Crankshaft position sensor',
+        words: ['الكرنك', 'كرنك', 'حساس الكرنك', 'crankshaft', 'crank sensor', 'ckp'],
+        whereAr: 'تحت المكينة قريب من البكرة الأمامية أو القير.',
+        whereEn: 'Low on the engine, near the front pulley or the transmission.',
+        jobAr: 'يقول للكمبيوتر وين الكرنك عشان يضبط الشرارة والبنزين. إذا خرب ممكن السيارة ما تشتغل.',
+        jobEn: 'Tells the computer the crankshaft position for spark and fuel timing. If it fails the car may not start.',
+        codes: ['P0335', 'P0336']
+    },
+    {
+        id: 'cam', ar: 'حساس الكامات', en: 'Camshaft position sensor',
+        words: ['الكامات', 'كامات', 'حساس الكامات', 'camshaft', 'cam sensor', 'cmp'],
+        whereAr: 'فوق المكينة عند غطا البلوف (الكامات).',
+        whereEn: 'At the top of the engine, on the valve cover.',
+        jobAr: 'يقول للكمبيوتر مكان الكامات عشان توقيت البلوف.',
+        jobEn: 'Tells the computer the camshaft position for valve timing.',
+        codes: ['P0340', 'P0341']
+    },
+    {
+        id: 'fuelPump', ar: 'طرمبة البنزين', en: 'Fuel pump',
+        words: ['طرمبه', 'الطرمبه', 'طرمبة البنزين', 'fuel pump'],
+        whereAr: 'داخل تانكي البنزين، وغالبًا توصل لها من تحت الكرسي الخلفي.',
+        whereEn: 'Inside the fuel tank, usually reached from under the rear seat.',
+        jobAr: 'تدز البنزين من التانكي للمكينة.',
+        jobEn: 'Pushes fuel from the tank to the engine.',
+        codes: ['P0230', 'P0087']
+    },
+    {
+        id: 'battery', ar: 'البطارية والدينمو', en: 'Battery and alternator',
+        words: ['البطاريه', 'بطاريه', 'الدينمو', 'دينمو', 'battery', 'alternator'],
+        whereAr: 'البطارية في غرفة المكينة (بعض السيارات في الشنطة)، والدينمو على المكينة ويلفه السير.',
+        whereEn: 'The battery is in the engine bay (some cars keep it in the trunk); the alternator is on the engine, driven by the belt.',
+        jobAr: 'البطارية تشغل السيارة، والدينمو يشحنها وهي شغالة.',
+        jobEn: 'The battery starts the car; the alternator charges it while it runs.',
+        codes: ['P0562', 'P0563', 'P0620']
+    },
+    {
+        id: 'knock', ar: 'حساس الطقطقة (Knock sensor)', en: 'Knock sensor',
+        words: ['حساس الطقطقه', 'knock sensor'],
+        whereAr: 'مربوط على جسم المكينة، غالبًا تحت مجمع الهوا.',
+        whereEn: 'Bolted to the engine block, often under the intake manifold.',
+        jobAr: 'يسمع الطقطقة في المكينة عشان الكمبيوتر يأخر الشرارة.',
+        jobEn: 'Listens for engine knock so the computer can retard the spark.',
+        codes: ['P0325', 'P0330']
+    }
+].map((p) => ({ ...p, matchers: p.words.map(toMatcher) }));
+
+const findPart = (text) => {
+    const input = normalize(text);
+    return PARTS.find((p) => p.matchers.some((match) => match(input))) || null;
+};
+
+const partReply = (part, lang) => {
+    const ar = lang === 'ar';
+    return ar
+        ? `${part.ar}: ${part.whereAr} شغلته: ${part.jobAr} الأكواد المرتبطة فيه: ${part.codes.join('، ')}.`
+        : `${part.en}: ${part.whereEn} What it does: ${part.jobEn} Related codes: ${part.codes.join(', ')}.`;
+};
+
+module.exports = { think, reply, isArabic, familyOf, findPart, partReply, SYMPTOMS, URGENCY_ORDER };
