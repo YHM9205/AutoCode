@@ -99,7 +99,7 @@
                             <span class="guess-name"><%= s.name %></span>
                             <%- include('../partials/severity', { level: s.severity }) %>
                         </div>
-                        <div class="meter" role="img" aria-label="<%= s.confidence %>% likely"><i style="width: <%= s.confidence %>%"></i></div>
+                        <progress class="meter" value="<%= s.confidence %>" max="100" aria-label="<%= s.confidence %>% likely"></progress>
                         <p class="why">
                             <%= s.confidence %>% likely. Matches: <%= s.because.join(', ') %><% if (s.seen) { %>. Logged <%= s.seen %> time<%= s.seen === 1 ? '' : 's' %> by <%= car ? `${car.make} owners` : 'drivers' %><% } %><% if (s.hadBefore) { %>. <strong>Your car had this before</strong><% } %>.
                         </p>

@@ -7,26 +7,21 @@ const decodeDtc = require('../utils/decodeDtc');
 
 const STATUSES = ['Open', 'In Progress', 'Resolved'];
 
-// options for the car form dropdowns
 const MAKES = ['Toyota', 'Nissan', 'Lexus', 'Honda', 'Hyundai', 'Kia', 'Mitsubishi', 'Mazda', 'Ford', 'Chevrolet', 'GMC', 'Dodge', 'Jeep', 'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen', 'Porsche', 'Land Rover', 'Other'];
 const YEARS = Array.from({ length: new Date().getFullYear() + 1 - 1990 + 1 }, (_, i) => new Date().getFullYear() + 1 - i);
 const formOptions = { makes: MAKES, years: YEARS };
 
-// finds the owner profile, creates it if the account does not have one
 const getOwner = (req) => Owner.findOneAndUpdate(
     { user: req.session.user._id },
     { $setOnInsert: { fullName: req.session.user.username } },
     { upsert: true, returnDocument: 'after' }
 );
 
-// only returns the car if it belongs to the signed-in user
 const findMyCar = async (req) => {
     if (!mongoose.isValidObjectId(req.params.id)) return null;
     const owner = await getOwner(req);
     return Car.findOne({ _id: req.params.id, owner: owner._id });
 };
-
-// ----- Cars -----
 
 const index = async (req, res) => {
     try {
@@ -107,8 +102,6 @@ const deleteCar = async (req, res) => {
         res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
-
-// ----- Code logs -----
 
 const addLog = async (req, res) => {
     try {

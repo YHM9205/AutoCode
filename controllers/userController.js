@@ -8,7 +8,6 @@ const { ASSIGNABLE_ROLES, isSuperOwner, isStaff, canControlAgent } = require('..
 
 const isMe = (req) => req.params.id === String(req.session.user._id);
 
-// you can manage yourself, the super owner manages everyone, an admin manages normal users
 const canManage = (me, target) => {
     if (target._id.equals(me._id)) return true;
     if (isSuperOwner(me)) return true;
@@ -21,7 +20,6 @@ const findUser = async (req) => {
     return target && canManage(req.session.user, target) ? target : null;
 };
 
-// Index (admin / super owner): all users, or jump to one when searching by id
 const index = async (req, res) => {
     try {
         const id = String(req.query.id || '').trim();
@@ -37,12 +35,10 @@ const index = async (req, res) => {
     }
 };
 
-// New (super owner): the add user form
 const newUser = (req, res) => {
     res.render('users/new.ejs', { roles: ASSIGNABLE_ROLES, values: {}, error: null });
 };
 
-// Create (super owner): a new account with its owner profile, same as signing up
 const create = async (req, res) => {
     const { username, email, password, role, fullName } = req.body;
     const values = { username, email, role, fullName };
@@ -62,12 +58,10 @@ const create = async (req, res) => {
     }
 };
 
-// Show: one user, with their cars and logs for themselves and the super owner
 const show = async (req, res) => {
     try {
         const shownUser = await findUser(req);
         if (!shownUser) return res.status(404).render('error.ejs', { message: 'User not found' });
-        // privacy: cars and faults are shown to their owner and the super owner, never to admins
         let cars = [];
         let logs = [];
         if (isMe(req) || isSuperOwner(req.session.user)) {
@@ -91,7 +85,6 @@ const show = async (req, res) => {
     }
 };
 
-// Update: username and email, role only by the super owner
 const update = async (req, res) => {
     try {
         const shownUser = await findUser(req);
@@ -101,7 +94,6 @@ const update = async (req, res) => {
         shownUser.email = email;
         if (isSuperOwner(req.session.user) && !isMe(req) && ASSIGNABLE_ROLES.includes(role)) {
             shownUser.role = role;
-            // only staff can hold Agent Control access
             if (!isStaff(shownUser)) shownUser.agentAccess = 'none';
         }
         await shownUser.save();
@@ -112,7 +104,6 @@ const update = async (req, res) => {
     }
 };
 
-// Update Agent Control access (super owner only): none, temporary until a date, or permanent
 const updateAgentAccess = async (req, res) => {
     try {
         const shownUser = await findUser(req);
@@ -139,8 +130,6 @@ const updateAgentAccess = async (req, res) => {
     }
 };
 
-// Update password: a user changes their own (needs the current one),
-// the super owner or an admin sets a new one for someone who forgot it
 const updatePassword = async (req, res) => {
     try {
         const shownUser = await findUser(req);
@@ -163,12 +152,10 @@ const updatePassword = async (req, res) => {
     }
 };
 
-// Delete: the user, their owner profile, cars and logs
 const remove = async (req, res) => {
     try {
         const shownUser = await findUser(req);
         if (!shownUser) return res.status(404).render('error.ejs', { message: 'User not found' });
-        // staff and the super owner can not delete their own account
         if (isMe(req) && (isStaff(shownUser) || isSuperOwner(shownUser))) {
             return res.redirect(`/users/${shownUser._id}?error=You can not delete your own ${shownUser.role} account`);
         }

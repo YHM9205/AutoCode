@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// One entry every time a user records a code for one of their cars
 const codeLogSchema = new mongoose.Schema(
     {
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

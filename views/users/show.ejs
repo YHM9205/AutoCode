@@ -39,7 +39,6 @@
     <button>Save access</button>
 </form>
 <script>
-    // the end date only matters for temporary access
     const access = document.getElementById('agentAccess');
     access.addEventListener('change', () => {
         document.getElementById('accessUntil').hidden = access.value !== 'temporary';

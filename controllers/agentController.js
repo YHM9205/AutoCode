@@ -9,7 +9,6 @@ const { think, reply, isArabic } = require('../utils/symptomBrain');
 
 const STATUSES = ['Active', 'Inactive', 'Maintenance'];
 
-// there is only one agent, create it the first time
 const getAgent = async () => {
     const agent = await Agent.findOne();
     return agent || Agent.create({ name: 'Auto-Code Assistant' });
@@ -17,16 +16,13 @@ const getAgent = async () => {
 
 const toLines = (text) => String(text || '').split('\n').map((l) => l.trim()).filter(Boolean);
 
-// worst first, used to pick the verdict when a question has more than one code
 const SEVERITY_ORDER = ['stop', 'soon', 'unknown', 'drive'];
 
-// the signed-in user's cars for the "which car?" dropdown
 const getMyCars = async (req) => {
     const owner = await Owner.findOne({ user: req.session.user._id });
     return owner ? Car.find({ owner: owner._id }).sort({ createdAt: -1 }) : [];
 };
 
-// what this user saw before for a code, and how many other drivers logged it
 const codeHistory = async (req, code, car) => {
     const mine = await CodeLog.find({ user: req.session.user._id, code, ...(car && { car: car._id }) })
         .sort({ updatedAt: -1 });
@@ -47,7 +43,6 @@ const codeHistory = async (req, code, car) => {
     };
 };
 
-// the brain's guess from a description: symptom scores, plus what drivers actually logged
 const diagnose = async (req, question, car, skip) => {
     const thought = think(question);
     if (!thought.matched.length) return null;
@@ -56,7 +51,6 @@ const diagnose = async (req, question, car, skip) => {
     const codes = top.map((c) => c.code);
     const [info, community, mine] = await Promise.all([
         ObdCode.find({ code: { $in: codes } }),
-        // it learns: every code drivers log (same make when a car is picked) makes that code rank higher
         CodeLog.aggregate([
             { $match: { code: { $in: codes } } },
             { $lookup: { from: 'cars', localField: 'car', foreignField: '_id', as: 'car' } },
@@ -89,8 +83,6 @@ const diagnose = async (req, question, car, skip) => {
     return { symptoms: thought.matched, urgency: thought.urgency, suggestions };
 };
 
-// ----- User side -----
-
 const index = async (req, res) => {
     try {
         const agent = await getAgent();
@@ -110,11 +102,9 @@ const ask = async (req, res) => {
         const agent = await getAgent();
         const cars = await getMyCars(req);
         const question = String(req.body.question || '').trim().slice(0, 500);
-        // only one of the user's own cars can be picked
         const car = cars.find((c) => String(c._id) === req.body.carId) || null;
         const carId = car ? String(car._id) : '';
 
-        // the conversation so far, a new one starts when the car changes
         let chat = req.session.agentChat;
         if (!chat || chat.carId !== carId) chat = { carId, turns: [], context: [], asked: [] };
 
@@ -122,7 +112,6 @@ const ask = async (req, res) => {
             return res.render('agent/index.ejs', { agent, cars, carId, question, answer: null, turns: chat.turns, sent: false });
         }
 
-        // the brain reads the last few messages together, so an answer to its question adds to what it knew
         chat.context = [...chat.context, question].slice(-4);
 
         const found = [...new Set(question.toUpperCase().match(/\b[PBCU][0-9A-F]{4}\b/g) || [])];
@@ -142,14 +131,12 @@ const ask = async (req, res) => {
         const levels = [...results.map((r) => r.severity), ...(brain ? [brain.urgency] : [])];
         const verdict = SEVERITY_ORDER.find((s) => levels.includes(s)) || null;
 
-        // split on spaces and punctuation so Arabic words count too
         const words = question.toLowerCase().split(/[\s.,!?؟،:;()]+/).filter((w) => w.length > 2);
         const knowledge = agent.knowledge
             .filter((k) => k.approved)
             .filter((k) => words.some((w) => `${k.topic} ${k.content}`.toLowerCase().includes(w)))
             .slice(0, 3);
 
-        // no code or symptom in the question, so show the user's open faults instead
         const openLogs = found.length || brain
             ? []
             : await CodeLog.find({
@@ -158,7 +145,6 @@ const ask = async (req, res) => {
                 ...(car && { car: car._id })
             }).populate('car').limit(5);
 
-        // a code the user typed comes first, otherwise the brain's best guess
         const top = results.length
             ? { code: results[0].code, name: results[0].name, hadBefore: results[0].history.times > 0, seen: results[0].history.others }
             : brain && brain.suggestions[0];
@@ -194,7 +180,6 @@ const ask = async (req, res) => {
     }
 };
 
-// start a new conversation
 const newChat = (req, res) => {
     delete req.session.agentChat;
     res.redirect('/agent');
@@ -216,9 +201,6 @@ const sendFeedback = async (req, res) => {
     }
 };
 
-// ----- Admin side -----
-
-// codes users logged that are not in the database yet
 const getUnknownCodes = async () => {
     const logged = await CodeLog.distinct('code');
     const known = await ObdCode.distinct('code', { code: { $in: logged } });
@@ -246,7 +228,6 @@ const addCode = async (req, res) => {
                 { $set: { code, name, category: code[0], problem, solution, severity } },
                 { upsert: true, runValidators: true }
             );
-            // logs that were saved before the code was known get its severity now
             await CodeLog.updateMany({ code, severity: 'unknown' }, { severity });
         }
         res.redirect('/agent/admin');
@@ -302,7 +283,6 @@ const deleteKnowledge = async (req, res) => {
     }
 };
 
-// approving a correction turns it into knowledge the agent can use
 const approveFeedback = async (req, res) => {
     try {
         const agent = await getAgent();

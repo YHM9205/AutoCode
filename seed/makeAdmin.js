@@ -1,5 +1,3 @@
-// Run: node seed/makeAdmin.js <username> [role]
-// role defaults to admin, use superowner for the site owner
 require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('../models/User');

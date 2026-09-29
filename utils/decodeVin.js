@@ -1,7 +1,4 @@
-// Reads a VIN (chassis number, 17 characters, ISO 3779):
-// position 1 = country, 1-3 = manufacturer (WMI), 9 = check digit, 10 = model year
 
-// first characters of the VIN -> manufacturer, longest prefix wins
 const WMI = {
     JTH: 'Lexus', JTJ: 'Lexus', '2T2': 'Lexus',
     JT: 'Toyota', '4T': 'Toyota', '5T': 'Toyota', '2T': 'Toyota',
@@ -30,7 +27,6 @@ const COUNTRIES = {
     V: 'France / Spain', W: 'Germany', Y: 'Sweden / Finland', Z: 'Italy'
 };
 
-// letters have a number value for the check digit (I, O and Q are never used in a VIN)
 const VALUES = {
     A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8,
     J: 1, K: 2, L: 3, M: 4, N: 5, P: 7, R: 9,
@@ -38,7 +34,6 @@ const VALUES = {
 };
 const WEIGHTS = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
 
-// position 10: A = 1980 ... Y = 2000, 1 = 2001 ... 9 = 2009, then the letters repeat from 2010
 const YEAR_CODES = 'ABCDEFGHJKLMNPRSTVWXY123456789';
 
 const checkDigit = (vin) => {
@@ -59,9 +54,7 @@ const getYear = (vin, northAmerican) => {
     const index = YEAR_CODES.indexOf(vin[9]);
     if (index < 0) return null;
     const first = 1980 + index;
-    // North American VINs: a letter in position 7 means the newer cycle (2010 and up)
     if (northAmerican) return /[A-Z]/.test(vin[6]) ? first + 30 : first;
-    // elsewhere pick the newest year that is not in the future
     return first + 30 <= new Date().getFullYear() + 1 ? first + 30 : first;
 };
 
@@ -71,7 +64,6 @@ const decodeVin = (input) => {
     if (/[IOQ]/.test(vin)) return { valid: false, error: 'A VIN never uses the letters I, O or Q' };
     if (!/^[A-Z0-9]{17}$/.test(vin)) return { valid: false, error: 'A VIN only has letters and numbers' };
 
-    // only North American VINs are required to have a correct check digit
     const northAmerican = /^[1-5]/.test(vin);
     const expected = checkDigit(vin);
     if (northAmerican && vin[8] !== expected) {

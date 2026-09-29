@@ -29,7 +29,6 @@ const userSchema = new mongoose.Schema(
             enum: ['user', 'owner', 'technician', 'moderator', 'admin', 'superowner'],
             default: 'user'
         },
-        // access to Agent Control, given by the super owner
         agentAccess: {
             type: String,
             enum: ['none', 'temporary', 'permanent'],

@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// severity: drive = keep driving, soon = visit a workshop soon, stop = stop the car now
 const obdCodeSchema = new mongoose.Schema(
     {
         code: { type: String, required: true, unique: true, uppercase: true, trim: true },

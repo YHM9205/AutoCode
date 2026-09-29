@@ -1,4 +1,3 @@
-// Explains a code from its letters and digits, for codes not in the database
 const SYSTEMS = { P: 'Powertrain', B: 'Body', C: 'Chassis', U: 'Network' };
 
 const P_AREAS = {

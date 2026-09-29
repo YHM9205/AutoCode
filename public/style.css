@@ -106,7 +106,6 @@ p {
     text-decoration: underline;
 }
 
-/* severity badges */
 .sev { padding: 2px 8px; border-radius: 10px; font-size: 0.85em; color: #fff; }
 .sev-drive { background: #2e7d32; }
 .sev-soon { background: #ef6c00; }
@@ -117,7 +116,6 @@ p {
 table { border-collapse: collapse; width: 100%; }
 td { padding: 6px; border-bottom: 1px solid #ddd; }
 
-/* assistant answer */
 .search-form select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
 .verdict { padding: 18px 20px; border-radius: 8px; color: #fff; font-size: 1.4em; font-weight: bold; margin-bottom: 20px; }
 .verdict small { display: block; font-size: 0.6em; font-weight: normal; opacity: 0.9; margin-top: 4px; }
@@ -129,14 +127,12 @@ td { padding: 6px; border-bottom: 1px solid #ddd; }
 .code-card h3 { margin-top: 0; }
 .code-card .history { background: #f4f6f9; padding: 8px 12px; border-radius: 4px; margin-bottom: 10px; }
 
-/* profile page */
 .saved { color: #2e7d32; font-weight: bold; }
 .danger-zone { margin: 20px 0; }
 .danger-zone summary { cursor: pointer; color: #c62828; font-weight: bold; }
 .danger-zone p { margin: 10px 0; }
 button.danger { background: #c62828; color: #fff; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; }
 
-/* assistant brain */
 .brain { background: #fff; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); }
 .brain h2 { margin-top: 0; font-size: 1.1em; color: #2F5B7C; }
 .symptoms { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
@@ -145,11 +141,12 @@ button.danger { background: #c62828; color: #fff; border: none; padding: 8px 14p
 .guess { border-top: 1px solid #eee; padding: 10px 0; }
 .guess-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .guess-name { flex: 1; min-width: 0; }
-.meter { height: 6px; background: #eef1f5; border-radius: 3px; margin: 8px 0; overflow: hidden; }
-.meter i { display: block; height: 100%; background: #2F5B7C; }
+.meter { display: block; width: 100%; height: 6px; margin: 8px 0; border: none; border-radius: 3px; background: #eef1f5; overflow: hidden; appearance: none; -webkit-appearance: none; }
+.meter::-webkit-progress-bar { background: #eef1f5; }
+.meter::-webkit-progress-value { background: #2F5B7C; }
+.meter::-moz-progress-bar { background: #2F5B7C; }
 .why { margin: 4px 0 8px; font-size: 0.9em; }
 
-/* assistant conversation */
 .chat { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 .bubble { max-width: 85%; padding: 10px 14px; border-radius: 14px; line-height: 1.5; margin: 0; }
 .bubble p { margin: 0; color: inherit; }
@@ -160,7 +157,6 @@ button.danger { background: #c62828; color: #fff; border: none; padding: 8px 14p
 .new-chat { margin: -10px 0 20px; }
 .new-chat button { background: none; border: 1px solid #ccc; border-radius: 4px; padding: 6px 12px; color: #555; cursor: pointer; }
 
-/* password show / hide */
 .show-password { margin-left: 6px; padding: 4px 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; color: #555; cursor: pointer; font-size: 0.85em; }
 
 .button-link { display: inline-block; background: #2F5B7C; color: #fff; padding: 8px 14px; border-radius: 4px; text-decoration: none; }

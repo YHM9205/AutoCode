@@ -1,10 +1,4 @@
-// The assistant's own brain: reads a description of what the car is doing
-// (Arabic or English), matches it to known symptoms, ranks the likely codes,
-// and writes a reply like a mechanic would, with a follow-up question.
-// Pure in-memory scoring, no outside service, so it answers in a few milliseconds.
 
-// Each symptom: words that describe it, how urgent it is, the codes it points to with a weight,
-// and a follow-up question that helps narrow it down
 const SYMPTOMS = [
     {
         id: 'shaking', label: 'Shaking or misfiring', ar: 'رجفة', urgency: 'soon',
@@ -80,7 +74,6 @@ const SYMPTOMS = [
     }
 ];
 
-// codes grouped by the part of the car they come from, with what that means and what to check first
 const FAMILIES = {
     airFuel: {
         codes: ['P0171', 'P0172', 'P0101', 'P0133', 'P0087', 'P0230'],
@@ -149,7 +142,6 @@ const URGENCY_TEXT = {
     unknown: { ar: 'خلها تنفحص بجهاز OBD عشان نعرف بالضبط.', en: 'Have it scanned with an OBD reader to know for sure.' }
 };
 
-// one spelling for the same Arabic letters, no diacritics, lower case
 const normalize = (text) => String(text || '')
     .toLowerCase()
     .replace(/[ً-ْـ]/g, '')
@@ -158,8 +150,6 @@ const normalize = (text) => String(text || '')
     .replace(/ى/g, 'ي')
     .replace(/\s+/g, ' ');
 
-// English words match from the start of a word ("vibrat" matches "vibrates", "hot" does not match "shot"),
-// Arabic words match anywhere so prefixes like "و" and "ال" still count
 const toMatcher = (word) => {
     const w = normalize(word);
     if (!/^[\x00-\x7F]+$/.test(w)) return (input) => input.includes(w);
@@ -173,9 +163,6 @@ const isArabic = (text) => /[؀-ۿ]/.test(String(text || ''));
 
 const familyOf = (code) => Object.values(FAMILIES).find((f) => f.codes.includes(code)) || null;
 
-// returns the symptoms found in the messages and the codes they point to, best first.
-// Takes one text or the conversation (oldest first): the newest message counts double,
-// so changing the subject moves the answer to the new problem
 const think = (messages) => {
     const inputs = [].concat(messages).map(normalize);
     const matched = [];
@@ -198,8 +185,6 @@ const think = (messages) => {
     return { matched, candidates, urgency };
 };
 
-// writes the reply: what I understood, what it likely is and why, what to check first, how urgent,
-// and one question to narrow it down (one the user was not asked yet)
 const reply = ({ lang, symptoms, top, urgency, carName, asked = [] }) => {
     const ar = lang === 'ar';
     const lines = [];

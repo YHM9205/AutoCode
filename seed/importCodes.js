@@ -1,5 +1,3 @@
-// Run once: node seed/importCodes.js
-// Codes from OBDex (https://github.com/foerbsnavi/OBDex), CC0 license
 require('dotenv').config();
 const mongoose = require('mongoose');
 const yaml = require('js-yaml');

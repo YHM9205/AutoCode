@@ -1,6 +1,3 @@
-// Run: node seed/userInfo.js              -> list all users
-//      node seed/userInfo.js <username|email|id>  -> one user with their cars and logs, as JSON
-// For the site owner only: it reads the database directly, the app never shows this to anyone
 require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('../models/User');
@@ -31,7 +28,6 @@ const CodeLog = require('../models/CodeLog');
     const cars = owner ? await Car.find({ owner: owner._id }).select('-__v -owner').lean() : [];
     const logs = await CodeLog.find({ user: user._id }).select('-__v -user').lean();
 
-    // each car with its own logs under it
     const garage = cars.map((car) => ({
         ...car,
         logs: logs.filter((l) => String(l.car) === String(car._id)).map(({ car: _car, ...log }) => log)

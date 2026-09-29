@@ -1,4 +1,3 @@
-// Run once: node seed/obdCodes.js
 require('dotenv').config();
 const mongoose = require('mongoose');
 const ObdCode = require('../models/ObdCode');
