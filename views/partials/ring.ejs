@@ -1,0 +1,5 @@
+<svg class="ring ring-<%= level %>" viewBox="0 0 42 42" role="img" aria-label="Health <%= score %> out of 100">
+    <circle class="ring-track" cx="21" cy="21" r="16" pathLength="100"></circle>
+    <circle class="ring-value" cx="21" cy="21" r="16" pathLength="100" stroke-dasharray="<%= score %> 100"></circle>
+    <text x="21" y="24" text-anchor="middle"><%= score %></text>
+</svg>

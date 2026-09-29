@@ -5,7 +5,7 @@ const User = require('../models/User');
 const ROLES = ['moderator', 'admin', 'superowner'];
 
 (async () => {
-    const username = process.argv[2];
+    const username = (process.argv[2] || '').toLowerCase();
     const role = process.argv[3] || 'admin';
     if (!username || !ROLES.includes(role)) {
         console.log(`Usage: node seed/makeAdmin.js <username> [${ROLES.join('|')}]`);

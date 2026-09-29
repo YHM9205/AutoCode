@@ -1,59 +1,167 @@
 <%- include('../partials/head') %>
-<h1><%= car.year %> <%= car.make %> <%= car.model %></h1>
-<% if (car.vin) { %><p>VIN: <%= car.vin %></p><% } %>
-<p><a href="/garage/<%= car._id %>/edit">Edit car</a></p>
-
-<h2>Log a Diagnostic Trouble Code (DTC)</h2>
+<section class="dash-head">
+    <%- include('../partials/carPhoto', { car, size: 'car-photo-side' }) %>
+    <div class="dash-title">
+        <p class="eyebrow"><a href="/garage">Dashboard</a></p>
+        <h1><%= car.year %> <%= car.make %> <%= car.model %></h1>
+        <p class="muted">
+            <%= car.mileage != null ? `${car.mileage.toLocaleString()} km` : 'Mileage not set' %>
+            <%= car.vin ? ` · VIN ${car.vin}` : '' %>
+            · <a href="/garage/<%= car._id %>/edit">Edit car</a>
+        </p>
+    </div>
+    <div class="health-box health-<%= health.level %>">
+        <%- include('../partials/ring', { score: health.score, level: health.level }) %>
+        <p><%= health.text %></p>
+    </div>
+</section>
 <% if (error) { %><p class="error"><%= error %></p><% } %>
-<form action="/garage/<%= car._id %>/logs" method="POST">
-    <input name="code" placeholder="P0300" required>
-    <input name="note" placeholder="Note (optional)">
-    <button>Log code</button>
-</form>
 
-<h2>Fault history</h2>
-<% if (!logs.length) { %><p>No codes logged for this car.</p><% } else { %>
-<table>
-    <thead>
-        <tr>
-            <th>Date Logged</th>
-            <th>DTC</th>
-            <th>Description</th>
-            <th>Severity</th>
-            <th>Technician Notes</th>
-            <th>Repair Status</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    <% logs.forEach(log => { const c = info[log.code]; %>
-        <tr class="<%= log.status === 'Resolved' ? 'resolved' : '' %>">
-            <td><%= log.createdAt.toLocaleDateString() %></td>
-            <td><strong><%= log.code %></strong></td>
-            <td><%= c ? c.name : decodeDtc(log.code) %></td>
-            <td><%- include('../partials/severity', { level: log.severity }) %></td>
-            <td><%= log.note || '' %></td>
-            <td>
-                <form action="/garage/<%= car._id %>/logs/<%= log._id %>?_method=PUT" method="POST">
-                    <select name="status" onchange="this.form.submit()">
-                        <% statuses.forEach(s => { %>
-                            <option value="<%= s %>" <%= log.status === s ? 'selected' : '' %>><%= s %></option>
-                        <% }) %>
-                    </select>
-                </form>
-            </td>
-            <td>
-                <form action="/garage/<%= car._id %>/logs/<%= log._id %>?_method=DELETE" method="POST">
-                    <button class="danger">Delete</button>
-                </form>
-            </td>
-        </tr>
-    <% }) %>
-    </tbody>
-</table>
+<% if (cards.length) { %>
+<section>
+    <h2>Before you go to the garage</h2>
+    <div class="prep-grid">
+        <% cards.forEach(c => { %>
+            <article class="prep-card">
+                <header>
+                    <span class="code"><%= c.code %></span>
+                    <%- include('../partials/severity', { level: c.severity }) %>
+                </header>
+                <p class="prep-name"><%= c.name %></p>
+                <p><strong>What it means:</strong> <%= c.plainEn.charAt(0).toUpperCase() + c.plainEn.slice(1) %></p>
+                <p><strong>Check first, cheapest first:</strong> <%= c.stepsEn %></p>
+                <p><strong>Ask the mechanic:</strong></p>
+                <ol>
+                    <% c.questionsEn.forEach(q => { %><li><%= q %></li><% }) %>
+                </ol>
+                <p class="avoid"><strong>Don't pay for:</strong> <%= c.avoidEn %></p>
+            </article>
+        <% }) %>
+    </div>
+</section>
 <% } %>
 
-<form action="/garage/<%= car._id %>?_method=DELETE" method="POST">
-    <button class="danger">Delete car</button>
-</form>
+<section class="check">
+    <h2>The garage told me…</h2>
+    <p class="muted">Type what the mechanic said (Arabic or English) and I'll check it against this car's faults and service history.</p>
+    <form action="/garage/<%= car._id %>/check" method="POST" class="search-form">
+        <input name="claim" dir="auto" maxlength="300" value="<%= claimText %>" placeholder="قالوا لازم نبدل الدبة / They said I need a new catalytic converter" required>
+        <button>Check</button>
+    </form>
+    <% if (claim) { %>
+        <p class="claim claim-<%= claim.verdict %>" dir="auto"><%= claim.text %></p>
+    <% } %>
+</section>
+
+<section>
+    <h2>Log a fault code</h2>
+    <form action="/garage/<%= car._id %>/logs" method="POST" class="inline-form">
+        <input name="code" placeholder="P0300" required>
+        <input name="note" placeholder="Note (optional)">
+        <button>Log code</button>
+    </form>
+</section>
+
+<section>
+    <h2>Fault history</h2>
+    <% if (!logs.length) { %><p class="muted">No codes logged for this car.</p><% } else { %>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Date</th><th>Code</th><th>Description</th><th>Severity</th><th>Notes</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+        <% logs.forEach(log => { const c = info[log.code]; %>
+            <tr class="<%= log.status === 'Resolved' ? 'resolved' : '' %>">
+                <td><%= log.createdAt.toLocaleDateString() %></td>
+                <td><span class="code"><%= log.code %></span></td>
+                <td><%= c ? c.name : decodeDtc(log.code) %></td>
+                <td><%- include('../partials/severity', { level: log.severity }) %></td>
+                <td><%= log.note || '' %></td>
+                <td>
+                    <form action="/garage/<%= car._id %>/logs/<%= log._id %>?_method=PUT" method="POST">
+                        <select name="status" onchange="this.form.submit()" aria-label="Repair status">
+                            <% statuses.forEach(s => { %>
+                                <option value="<%= s %>" <%= log.status === s ? 'selected' : '' %>><%= s %></option>
+                            <% }) %>
+                        </select>
+                    </form>
+                </td>
+                <td>
+                    <details class="danger-zone">
+                        <summary>Delete</summary>
+                        <form action="/garage/<%= car._id %>/logs/<%= log._id %>?_method=DELETE" method="POST">
+                            <button class="danger">Yes, delete</button>
+                        </form>
+                    </details>
+                </td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+    </div>
+    <% } %>
+</section>
+
+<section id="services">
+    <h2>Service</h2>
+    <% if (due.length) { %>
+        <ul class="due-list">
+            <% due.forEach(d => { %>
+                <li class="due-<%= d.status %>"><strong><%= d.label %></strong> <span><%= d.text %></span></li>
+            <% }) %>
+        </ul>
+    <% } else { %>
+        <p class="muted">Log a service below and I'll remind you when the next one is due.</p>
+    <% } %>
+
+    <form action="/garage/<%= car._id %>/services" method="POST" class="inline-form">
+        <select name="serviceType" required aria-label="Service type">
+            <option value="" disabled selected>Service type</option>
+            <% Object.entries(serviceTypes).forEach(([key, s]) => { %>
+                <option value="<%= key %>"><%= s.label %></option>
+            <% }) %>
+        </select>
+        <input name="date" type="date" aria-label="Date">
+        <input name="mileage" type="number" min="0" placeholder="Mileage (km)">
+        <input name="cost" type="number" min="0" step="0.001" placeholder="Cost (BD)">
+        <input name="garage" maxlength="100" placeholder="Garage name">
+        <button>Add service</button>
+    </form>
+
+    <% if (services.length) { %>
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Date</th><th>Service</th><th>Mileage</th><th>Cost</th><th>Garage</th><th></th></tr></thead>
+        <tbody>
+        <% services.forEach(s => { %>
+            <tr>
+                <td><%= s.date.toLocaleDateString() %></td>
+                <td><%= serviceTypes[s.serviceType] ? serviceTypes[s.serviceType].label : s.serviceType %></td>
+                <td><%= s.mileage != null ? `${s.mileage.toLocaleString()} km` : '' %></td>
+                <td><%= s.cost != null ? `${s.cost} BD` : '' %></td>
+                <td><%= s.garage || '' %></td>
+                <td>
+                    <details class="danger-zone">
+                        <summary>Delete</summary>
+                        <form action="/garage/<%= car._id %>/services/<%= s._id %>?_method=DELETE" method="POST">
+                            <button class="danger">Yes, delete</button>
+                        </form>
+                    </details>
+                </td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+    </div>
+    <% } %>
+</section>
+
+<details class="danger-zone">
+    <summary>Delete car</summary>
+    <p>This deletes the car with all its codes and services. It can not be undone.</p>
+    <form action="/garage/<%= car._id %>?_method=DELETE" method="POST">
+        <button class="danger">Yes, delete</button>
+    </form>
+</details>
 <%- include('../partials/foot') %>

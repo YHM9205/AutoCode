@@ -14,13 +14,15 @@ const signupUser = async (req, res) => {
         phone,
         garageName,
         password,
-        confirmPassword
+        confirmPassword,
+        gender,
+        level
     } = req.body || {};
 
     const renderSignupError = (message) => {
         res.status(400).render("auth/signup.ejs", {
             error: message,
-            values: { username, email, fullName, phone, garageName }
+            values: { username, email, fullName, phone, garageName, gender, level }
         });
     };
 
@@ -29,7 +31,7 @@ const signupUser = async (req, res) => {
         return renderSignupError("Please complete all required fields.");
     }
 
-    const normalizedUsername = username.trim();
+    const normalizedUsername = username.trim().toLowerCase();
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
@@ -46,6 +48,10 @@ const signupUser = async (req, res) => {
 
     if (password !== confirmPassword) {
         return renderSignupError("Passwords do not match.");
+    }
+
+    if (!["male", "female"].includes(gender)) {
+        return renderSignupError("Please choose male or female.");
     }
 
     try {
@@ -70,7 +76,9 @@ const signupUser = async (req, res) => {
                 username: normalizedUsername,
                 email: normalizedEmail,
                 password: hashedPassword,
-                role: "owner"
+                role: "owner",
+                gender,
+                level: ["beginner", "intermediate", "expert"].includes(level) ? level : "beginner"
             });
 
             await Owner.create({
@@ -129,7 +137,7 @@ const loginUser = async (req, res) => {
     try {
         const userInDatabase = identifier.includes("@")
             ? await User.findOne({ email: identifier.toLowerCase() })
-            : await User.findOne({ username: identifier });
+            : await User.findOne({ username: identifier.toLowerCase() });
 
         if (!userInDatabase || !(await bcrypt.compare(password, userInDatabase.password))) {
             return renderLoginError("Login failed. Please check your credentials.", 401);

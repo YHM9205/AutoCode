@@ -6,6 +6,8 @@ const carSchema = new mongoose.Schema(
         model: { type: String, required: true, trim: true },
         year: { type: Number, required: true, min: 1886 },
         vin: { type: String, trim: true, uppercase: true, unique: true, sparse: true },
+        mileage: { type: Number, min: 0 },
+        image: { type: String },
         owner: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Owner',

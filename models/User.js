@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
             unique: true,
+            lowercase: true,
             trim: true,
             minlength: 2,
             maxlength: 50
@@ -28,6 +29,15 @@ const userSchema = new mongoose.Schema(
             type: String,
             enum: ['user', 'owner', 'technician', 'moderator', 'admin', 'superowner'],
             default: 'user'
+        },
+        gender: {
+            type: String,
+            enum: ['male', 'female']
+        },
+        level: {
+            type: String,
+            enum: ['beginner', 'intermediate', 'expert'],
+            default: 'beginner'
         },
         agentAccess: {
             type: String,

@@ -22,4 +22,10 @@ router.put('/:id/logs/:logId', garage.updateLog);
 
 router.delete('/:id/logs/:logId', garage.deleteLog);
 
+router.post('/:id/services', garage.addService);
+
+router.delete('/:id/services/:serviceId', garage.deleteService);
+
+router.post('/:id/check', garage.checkGarage);
+
 module.exports = router;

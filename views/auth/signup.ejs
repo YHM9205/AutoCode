@@ -22,6 +22,19 @@
         <label for="garageName">Garage name (optional):</label>
         <input type="text" name="garageName" id="garageName" value="<%= values.garageName || '' %>">
     </div>
+    <fieldset class="choice">
+        <legend>Gender</legend>
+        <label><input type="radio" name="gender" value="male" <%= values.gender === 'male' ? 'checked' : '' %> required> Male</label>
+        <label><input type="radio" name="gender" value="female" <%= values.gender === 'female' ? 'checked' : '' %>> Female</label>
+    </fieldset>
+    <div>
+        <label for="level">How well do you know cars?</label>
+        <select name="level" id="level">
+            <option value="beginner" <%= (values.level || 'beginner') === 'beginner' ? 'selected' : '' %>>I don't know much</option>
+            <option value="intermediate" <%= values.level === 'intermediate' ? 'selected' : '' %>>I know a bit</option>
+            <option value="expert" <%= values.level === 'expert' ? 'selected' : '' %>>Engineer 🔧</option>
+        </select>
+    </div>
     <div>
         <label for="password">Password (min 6 characters):</label>
         <input type="password" name="password" id="password" minlength="6" required>

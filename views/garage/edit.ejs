@@ -13,6 +13,7 @@
             <option value="<%= y %>" <%= car.year === y ? 'selected' : '' %>><%= y %></option>
         <% }) %>
     </select>
+    <input name="mileage" type="number" min="0" value="<%= car.mileage != null ? car.mileage : '' %>" placeholder="Mileage in km (optional)">
     <input name="vin" value="<%= car.vin || '' %>" placeholder="VIN (optional)">
     <button>Update</button>
     <a href="/garage/<%= car._id %>">Cancel</a>

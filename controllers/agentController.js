@@ -87,9 +87,11 @@ const index = async (req, res) => {
     try {
         const agent = await getAgent();
         const cars = await getMyCars(req);
-        const chat = req.session.agentChat || { turns: [] };
+        let chat = req.session.agentChat || { turns: [] };
+        const picked = cars.find((c) => String(c._id) === req.query.car);
+        if (picked && chat.carId !== String(picked._id)) chat = { turns: [] };
         res.render('agent/index.ejs', {
-            agent, cars, carId: chat.carId || '', question: '', answer: null, turns: chat.turns, sent: req.query.sent === '1'
+            agent, cars, carId: picked ? String(picked._id) : chat.carId || '', question: '', answer: null, turns: chat.turns, sent: req.query.sent === '1'
         });
     } catch (error) {
         console.log(error);
@@ -157,7 +159,9 @@ const ask = async (req, res) => {
                 top,
                 urgency: verdict,
                 carName: car ? `${car.make} ${car.model}` : null,
-                asked: chat.asked
+                asked: chat.asked,
+                gender: req.session.user.gender,
+                level: req.session.user.level
             })
             : null;
         const said = part || diagnosis

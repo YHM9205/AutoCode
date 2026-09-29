@@ -92,6 +92,10 @@ const update = async (req, res) => {
         const { username, email, role } = req.body;
         shownUser.username = username;
         shownUser.email = email;
+        if (isMe(req)) {
+            if (['male', 'female'].includes(req.body.gender)) shownUser.gender = req.body.gender;
+            if (['beginner', 'intermediate', 'expert'].includes(req.body.level)) shownUser.level = req.body.level;
+        }
         if (isSuperOwner(req.session.user) && !isMe(req) && ASSIGNABLE_ROLES.includes(role)) {
             shownUser.role = role;
             if (!isStaff(shownUser)) shownUser.agentAccess = 'none';

@@ -1,0 +1,5 @@
+<% if (car.image) { %>
+    <img src="<%= car.image %>" alt="<%= car.make %> <%= car.model %>" class="car-photo <%= typeof size !== 'undefined' ? size : '' %>" loading="lazy" referrerpolicy="no-referrer">
+<% } else { %>
+    <div class="car-photo car-photo-empty <%= typeof size !== 'undefined' ? size : '' %>" aria-hidden="true"><%= car.make.charAt(0).toUpperCase() %></div>
+<% } %>

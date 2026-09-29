@@ -1,10 +1,85 @@
 <%- include('../partials/head') %>
-<h1>My Garage</h1>
-<a href="/garage/new">+ Add car</a>
-<% if (!cars.length) { %><p>No cars yet.</p><% } %>
-<ul>
-    <% cars.forEach(car => { %>
-        <li><a href="/garage/<%= car._id %>"><%= car.year %> <%= car.make %> <%= car.model %></a></li>
-    <% }) %>
-</ul>
+<section class="dash-head">
+    <div>
+        <p class="eyebrow">Dashboard</p>
+        <h1>Hi <%= user.username %></h1>
+        <p class="lead">Know your car before you walk into the garage.</p>
+    </div>
+    <a href="/garage/new" class="button-link">+ Add car</a>
+</section>
+
+<section class="stats" aria-label="Summary">
+    <div class="stat">
+        <span class="stat-value"><%= stats.cars %></span>
+        <span class="stat-label">My cars</span>
+    </div>
+    <div class="stat <%= stats.open ? 'stat-warn' : '' %>">
+        <span class="stat-value"><%= stats.open %></span>
+        <span class="stat-label">Open faults</span>
+    </div>
+    <div class="stat stat-good">
+        <span class="stat-value"><%= stats.fixed %></span>
+        <span class="stat-label">Fixed</span>
+    </div>
+</section>
+
+<% if (!cards.length) { %>
+    <section class="empty">
+        <h2>No cars yet</h2>
+        <p>Add your first car to see its health, faults and next service.</p>
+        <a href="/garage/new" class="button-link">+ Add my first car</a>
+    </section>
+<% } else { %>
+    <section class="car-grid" aria-label="My cars">
+        <% cards.forEach(c => { %>
+            <article class="car-card health-<%= c.health.level %>">
+                <%- include('../partials/carPhoto', { car: c.car }) %>
+                <header class="car-card-head">
+                    <div>
+                        <h2><%= c.car.make %> <%= c.car.model %></h2>
+                        <p class="muted"><%= c.car.year %><%= c.car.mileage != null ? ` · ${c.car.mileage.toLocaleString()} km` : '' %></p>
+                    </div>
+                    <%- include('../partials/ring', { score: c.health.score, level: c.health.level }) %>
+                </header>
+                <p class="health-text"><%= c.health.text %></p>
+                <ul class="car-facts">
+                    <li>
+                        <span class="muted">Open faults</span>
+                        <span><%= c.open %><% if (c.worst) { %> <%- include('../partials/severity', { level: c.worst }) %><% } %></span>
+                    </li>
+                    <li>
+                        <span class="muted">Next service</span>
+                        <span class="due-<%= c.nextService ? c.nextService.status : 'none' %>"><%= c.nextService ? `${c.nextService.label}, ${c.nextService.text}` : 'No service logged' %></span>
+                    </li>
+                    <li>
+                        <span class="muted">Last code</span>
+                        <span><%= c.lastLog ? `${c.lastLog.code} (${c.lastLog.status})` : 'None' %></span>
+                    </li>
+                </ul>
+                <div class="card-actions">
+                    <a href="/garage/<%= c.car._id %>" class="button-link">Details</a>
+                    <a href="/agent?car=<%= c.car._id %>" class="button-ghost">Ask the assistant</a>
+                </div>
+            </article>
+        <% }) %>
+    </section>
+
+    <section class="recent">
+        <h2>Recent activity</h2>
+        <% if (!recent.length) { %>
+            <p class="muted">No codes logged yet.</p>
+        <% } else { %>
+            <ul class="activity">
+                <% recent.forEach(r => { %>
+                    <li>
+                        <span class="code"><%= r.log.code %></span>
+                        <span><%= r.car ? `${r.car.make} ${r.car.model}` : '' %></span>
+                        <%- include('../partials/severity', { level: r.log.severity }) %>
+                        <span class="muted"><%= r.log.status %> · <%= r.log.createdAt.toLocaleDateString() %></span>
+                    </li>
+                <% }) %>
+            </ul>
+        <% } %>
+    </section>
+<% } %>
 <%- include('../partials/foot') %>
