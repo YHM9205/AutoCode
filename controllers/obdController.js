@@ -8,7 +8,7 @@ const getAllCodes = async (req, res) => {
         res.render('obd/index.ejs', { codes, q });
     } catch (error) {
         console.error(error);
-        res.status(500).send('Server Error');
+        res.status(500).render('error.ejs', { message: 'Server Error' });
     }
 };
 

@@ -174,7 +174,7 @@ const logoutUser = async (req, res) => {
         return res.redirect("/");
     } catch (error) {
         console.error("Logout failed:", error);
-        return res.status(500).send("Unable to log out. Please try again.");
+        return res.status(500).render('error.ejs', { message: "Unable to log out. Please try again." });
     }
 };
 

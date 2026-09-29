@@ -35,7 +35,7 @@ const index = async (req, res) => {
         res.render('garage/index.ejs', { cars });
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -57,25 +57,25 @@ const createCar = async (req, res) => {
 const showCar = async (req, res) => {
     try {
         const car = await findMyCar(req);
-        if (!car) return res.status(404).send('Car not found');
+        if (!car) return res.status(404).render('error.ejs', { message: 'Car not found' });
         const logs = await CodeLog.find({ car: car._id }).sort({ createdAt: -1 });
         const codes = await ObdCode.find({ code: { $in: logs.map((l) => l.code) } });
         const info = Object.fromEntries(codes.map((c) => [c.code, c]));
         res.render('garage/show.ejs', { car, logs, info, decodeDtc, statuses: STATUSES, error: req.query.error || null });
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
 const editCar = async (req, res) => {
     try {
         const car = await findMyCar(req);
-        if (!car) return res.status(404).send('Car not found');
+        if (!car) return res.status(404).render('error.ejs', { message: 'Car not found' });
         res.render('garage/edit.ejs', { ...formOptions, car, error: null });
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -83,13 +83,13 @@ const updateCar = async (req, res) => {
     let car;
     try {
         car = await findMyCar(req);
-        if (!car) return res.status(404).send('Car not found');
+        if (!car) return res.status(404).render('error.ejs', { message: 'Car not found' });
         const { make, model, year, vin } = req.body;
         Object.assign(car, { make, model, year, vin: vin || undefined });
         await car.save();
         res.redirect(`/garage/${car._id}`);
     } catch (error) {
-        if (!car) return res.status(500).send('Something went wrong');
+        if (!car) return res.status(500).render('error.ejs', { message: 'Something went wrong' });
         res.status(400).render('garage/edit.ejs', { ...formOptions, car, error: error.message });
     }
 };
@@ -104,7 +104,7 @@ const deleteCar = async (req, res) => {
         res.redirect('/garage');
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -113,7 +113,7 @@ const deleteCar = async (req, res) => {
 const addLog = async (req, res) => {
     try {
         const car = await findMyCar(req);
-        if (!car) return res.status(404).send('Car not found');
+        if (!car) return res.status(404).render('error.ejs', { message: 'Car not found' });
         const code = String(req.body.code || '').trim().toUpperCase();
         if (!/^[PBCU][0-9A-F]{4}$/.test(code)) {
             return res.redirect(`/garage/${car._id}?error=Invalid code format (example: P0300)`);
@@ -129,7 +129,7 @@ const addLog = async (req, res) => {
         res.redirect(`/garage/${car._id}`);
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -146,7 +146,7 @@ const updateLog = async (req, res) => {
         res.redirect(`/garage/${car._id}`);
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -158,7 +158,7 @@ const deleteLog = async (req, res) => {
         res.redirect(`/garage/${car._id}`);
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 

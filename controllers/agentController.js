@@ -101,7 +101,7 @@ const index = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -190,7 +190,7 @@ const ask = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -212,7 +212,7 @@ const sendFeedback = async (req, res) => {
         res.redirect('/agent?sent=1');
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -232,7 +232,7 @@ const admin = async (req, res) => {
         res.render('agent/admin.ejs', { agent, statuses: STATUSES, unknownCodes });
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -252,7 +252,7 @@ const addCode = async (req, res) => {
         res.redirect('/agent/admin');
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -267,7 +267,7 @@ const updateAgent = async (req, res) => {
         res.redirect('/agent/admin');
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -283,7 +283,7 @@ const addKnowledge = async (req, res) => {
         res.redirect('/agent/admin');
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -298,7 +298,7 @@ const deleteKnowledge = async (req, res) => {
         res.redirect('/agent/admin');
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -316,7 +316,7 @@ const approveFeedback = async (req, res) => {
         res.redirect('/agent/admin');
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -331,7 +331,7 @@ const rejectFeedback = async (req, res) => {
         res.redirect('/agent/admin');
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 

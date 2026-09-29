@@ -54,6 +54,17 @@ app.use('/agent', isSignedIn, agentRoutes)
 app.use('/users', isSignedIn, userRoutes)
 app.use('/', indexRoutes)
 
+// any other path
+app.use((req, res) => {
+    res.status(404).render('error.ejs', { message: 'Page not found' });
+});
+
+// any error a route did not handle
+app.use((err, req, res, next) => {
+    console.log(err);
+    res.status(500).render('error.ejs', { message: 'Something went wrong' });
+});
+
 
 // connect to database and listen on Port 3000
 async function startServer() {

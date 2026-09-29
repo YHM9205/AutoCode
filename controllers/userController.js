@@ -33,7 +33,7 @@ const index = async (req, res) => {
         res.render('users/index.ejs', { users, id, canControlAgent, error: id ? 'No user with that id' : null });
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -66,7 +66,7 @@ const create = async (req, res) => {
 const show = async (req, res) => {
     try {
         const shownUser = await findUser(req);
-        if (!shownUser) return res.status(404).send('User not found');
+        if (!shownUser) return res.status(404).render('error.ejs', { message: 'User not found' });
         // privacy: cars and faults are shown to their owner and the super owner, never to admins
         let cars = [];
         let logs = [];
@@ -87,7 +87,7 @@ const show = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -95,7 +95,7 @@ const show = async (req, res) => {
 const update = async (req, res) => {
     try {
         const shownUser = await findUser(req);
-        if (!shownUser) return res.status(404).send('User not found');
+        if (!shownUser) return res.status(404).render('error.ejs', { message: 'User not found' });
         const { username, email, role } = req.body;
         shownUser.username = username;
         shownUser.email = email;
@@ -116,7 +116,7 @@ const update = async (req, res) => {
 const updateAgentAccess = async (req, res) => {
     try {
         const shownUser = await findUser(req);
-        if (!shownUser || !isSuperOwner(req.session.user)) return res.status(404).send('User not found');
+        if (!shownUser || !isSuperOwner(req.session.user)) return res.status(404).render('error.ejs', { message: 'User not found' });
         if (!isStaff(shownUser)) {
             return res.redirect(`/users/${shownUser._id}?error=Make this user an admin or moderator first`);
         }
@@ -135,7 +135,7 @@ const updateAgentAccess = async (req, res) => {
         res.redirect(`/users/${shownUser._id}?saved=1`);
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -144,7 +144,7 @@ const updateAgentAccess = async (req, res) => {
 const updatePassword = async (req, res) => {
     try {
         const shownUser = await findUser(req);
-        if (!shownUser) return res.status(404).send('User not found');
+        if (!shownUser) return res.status(404).render('error.ejs', { message: 'User not found' });
         const back = (error) => res.redirect(`/users/${shownUser._id}?error=${encodeURIComponent(error)}`);
         const { currentPassword, newPassword, confirmPassword } = req.body;
 
@@ -159,7 +159,7 @@ const updatePassword = async (req, res) => {
         res.redirect(`/users/${shownUser._id}?saved=1`);
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
@@ -167,7 +167,7 @@ const updatePassword = async (req, res) => {
 const remove = async (req, res) => {
     try {
         const shownUser = await findUser(req);
-        if (!shownUser) return res.status(404).send('User not found');
+        if (!shownUser) return res.status(404).render('error.ejs', { message: 'User not found' });
         // staff and the super owner can not delete their own account
         if (isMe(req) && (isStaff(shownUser) || isSuperOwner(shownUser))) {
             return res.redirect(`/users/${shownUser._id}?error=You can not delete your own ${shownUser.role} account`);
@@ -186,7 +186,7 @@ const remove = async (req, res) => {
         res.redirect('/users');
     } catch (error) {
         console.log(error);
-        res.status(500).send('Something went wrong');
+        res.status(500).render('error.ejs', { message: 'Something went wrong' });
     }
 };
 
