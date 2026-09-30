@@ -394,6 +394,7 @@ Every push to `main` deploys automatically.
 - [ ] Read codes directly from a Bluetooth OBD-II scanner (ELM327)
 - [ ] Link parts and prices to each code
 - [ ] Upload your own car photo
+- [ ] Assistant replies to greetings and covers more problems without codes (brakes, AC, steering)
 
 ## Attributions
 
