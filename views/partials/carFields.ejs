@@ -1,0 +1,38 @@
+<% const current = typeof car !== 'undefined' ? car : {}; %>
+<% const listed = Boolean(current.model && models[current.make] && models[current.make].includes(current.model)); %>
+<% const typed = Boolean(current.model && !listed); %>
+<select name="make" id="make" required>
+    <% if (!current.make) { %><option value="" disabled selected>Make</option><% } %>
+    <% (current.make && !makes.includes(current.make) ? [current.make, ...makes] : makes).forEach(m => { %>
+        <option value="<%= m %>" <%= current.make === m ? 'selected' : '' %>><%= m %></option>
+    <% }) %>
+</select>
+<select name="modelPick" id="model-pick" required>
+    <option value="" disabled <%= current.model ? '' : 'selected' %>>Model</option>
+    <% (models[current.make] || []).forEach(m => { %>
+        <option value="<%= m %>" <%= current.model === m ? 'selected' : '' %>><%= m %></option>
+    <% }) %>
+    <option value="Other" <%= typed ? 'selected' : '' %>>Other (type it)</option>
+</select>
+<input name="modelOther" id="model-other" placeholder="Type the model" value="<%= typed ? current.model : '' %>" <%= typed ? '' : 'hidden' %>>
+<script>
+    const MODELS = <%- JSON.stringify(models) %>;
+    const makeSelect = document.getElementById('make');
+    const modelPick = document.getElementById('model-pick');
+    const modelOther = document.getElementById('model-other');
+    const syncOther = () => {
+        const other = modelPick.value === 'Other';
+        modelOther.hidden = !other;
+        modelOther.required = other;
+    };
+    makeSelect.addEventListener('change', () => {
+        const list = MODELS[makeSelect.value] || [];
+        const options = [['', 'Model'], ...list.map((m) => [m, m]), ['Other', 'Other (type it)']];
+        modelPick.replaceChildren(...options.map(([value, label]) => new Option(label, value)));
+        modelPick.value = list.length ? '' : 'Other';
+        modelPick.options[0].disabled = true;
+        syncOther();
+    });
+    modelPick.addEventListener('change', syncOther);
+    syncOther();
+</script>

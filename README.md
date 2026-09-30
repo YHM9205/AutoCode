@@ -87,7 +87,7 @@ Agent Control access is stored on the user (`agentAccess`, `agentAccessUntil`) a
 
 ## The Assistant
 
-The assistant's brain (`utils/symptomBrain.js`) is a rule-based expert system, no outside AI service:
+The assistant's diagnosis engine (`utils/diagnosis.js`) is a rule-based expert system, no outside AI service:
 
 1. **Understands** 12 symptoms (shaking, stalling, overheating, gearbox…) in Arabic and English. Arabic spelling is normalized first.
 2. **Scores** the codes each symptom points to. Codes that several symptoms point to rank higher, and the newest message counts double.
@@ -213,7 +213,7 @@ middleware/    isSignedIn, isAdmin, isSuperOwner, canControlAgent, passUserToVie
 models/        User, Owner, Car, ObdCode, CodeLog, Agent, ...
 routes/        auth, index, obd, garage, agent, user
 seed/          importCodes, obdCodes, makeAdmin, userInfo
-utils/         symptomBrain, decodeDtc, decodeVin, roles
+utils/         diagnosis, carImage, carModels, decodeDtc, decodeVin, roles
 views/         EJS templates (garage/, users/, agent/, obd/, auth/, partials/)
 public/        CSS
 ```

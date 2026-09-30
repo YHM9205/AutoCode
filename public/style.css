@@ -230,13 +230,13 @@ button.danger:hover { box-shadow: 0 0 14px rgba(239, 68, 68, 0.55); }
 .verdict-stop { color: var(--red); border-color: var(--red); box-shadow: 0 0 18px rgba(239, 68, 68, 0.25); }
 .verdict-unknown { color: var(--muted); }
 
-.code-card, .brain { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 16px; }
+.code-card, .analysis { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 16px; }
 .code-card h3 { margin-top: 0; }
 .code-card .history { background: var(--card-2); padding: 8px 12px; border-radius: 8px; }
-.brain h2 { margin-top: 0; font-size: 1.05em; color: var(--neon); }
+.analysis h2 { margin-top: 0; font-size: 1.05em; color: var(--neon); }
 .symptoms { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .chip { background: var(--neon-soft); color: var(--neon); padding: 4px 10px; border-radius: 999px; font-size: 0.85em; }
-.brain-lead { margin-bottom: 8px; }
+.analysis-lead { margin-bottom: 8px; }
 .guess { border-top: 1px solid var(--line); padding: 10px 0; }
 .guess-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .guess-name { flex: 1; min-width: 0; }

@@ -5,7 +5,7 @@ const CodeLog = require('../models/CodeLog');
 const Owner = require('../models/Owner');
 const Car = require('../models/Car');
 const decodeDtc = require('../utils/decodeDtc');
-const { think, reply, isArabic, findPart, partReply } = require('../utils/symptomBrain');
+const { think, reply, isArabic, findPart, partReply } = require('../utils/diagnosis');
 
 const STATUSES = ['Active', 'Inactive', 'Maintenance'];
 
@@ -129,8 +129,8 @@ const ask = async (req, res) => {
                 history: await codeHistory(req, code, car)
             };
         }));
-        const brain = await diagnose(req, chat.context, car, found);
-        const levels = [...results.map((r) => r.severity), ...(brain ? [brain.urgency] : [])];
+        const analysis = await diagnose(req, chat.context, car, found);
+        const levels = [...results.map((r) => r.severity), ...(analysis ? [analysis.urgency] : [])];
         const verdict = SEVERITY_ORDER.find((s) => levels.includes(s)) || null;
 
         const words = question.toLowerCase().split(/[\s.,!?؟،:;()]+/).filter((w) => w.length > 2);
@@ -139,7 +139,7 @@ const ask = async (req, res) => {
             .filter((k) => words.some((w) => `${k.topic} ${k.content}`.toLowerCase().includes(w)))
             .slice(0, 3);
 
-        const openLogs = found.length || brain || findPart(question)
+        const openLogs = found.length || analysis || findPart(question)
             ? []
             : await CodeLog.find({
                 user: req.session.user._id,
@@ -149,13 +149,13 @@ const ask = async (req, res) => {
 
         const top = results.length
             ? { code: results[0].code, name: results[0].name, hadBefore: results[0].history.times > 0, seen: results[0].history.others }
-            : brain && brain.suggestions[0];
+            : analysis && analysis.suggestions[0];
         const lang = isArabic(question) ? 'ar' : 'en';
         const part = findPart(question);
-        const diagnosis = top || brain
+        const diagnosis = top || analysis
             ? reply({
                 lang,
-                symptoms: brain ? brain.symptoms : [],
+                symptoms: analysis ? analysis.symptoms : [],
                 top,
                 urgency: verdict,
                 carName: car ? `${car.make} ${car.model}` : null,
@@ -178,12 +178,12 @@ const ask = async (req, res) => {
         }
         req.session.agentChat = chat;
 
-        const summary = [...results, ...(brain ? brain.suggestions : [])]
+        const summary = [...results, ...(analysis ? analysis.suggestions : [])]
             .map((r) => `${r.code}: ${r.name}`).join(', ') || 'No matching code';
 
         res.render('agent/index.ejs', {
             agent, cars, carId, car, question, turns: previous,
-            answer: { said, results, brain, verdict, knowledge, openLogs, summary },
+            answer: { said, results, analysis, verdict, knowledge, openLogs, summary },
             sent: false
         });
     } catch (error) {

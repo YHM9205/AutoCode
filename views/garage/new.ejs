@@ -2,13 +2,7 @@
 <h1>Add a car</h1>
 <% if (error) { %><p class="error"><%= error %></p><% } %>
 <form action="/garage" method="POST">
-    <select name="make" required>
-        <option value="" disabled selected>Make</option>
-        <% makes.forEach(m => { %>
-            <option value="<%= m %>"><%= m %></option>
-        <% }) %>
-    </select>
-    <input name="model" placeholder="Model (Camry)" required>
+    <%- include('../partials/carFields') %>
     <select name="year" required>
         <option value="" disabled selected>Year</option>
         <% years.forEach(y => { %>

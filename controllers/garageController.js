@@ -7,17 +7,19 @@ const Maintenance = require('../models/Maintenance');
 const decodeDtc = require('../utils/decodeDtc');
 const { carHealth } = require('../utils/health');
 const { findCarImage } = require('../utils/carImage');
+const { MODELS } = require('../utils/carModels');
 const { SERVICES, nextServices, describeDue } = require('../utils/service');
-const { beforeYouGo, checkClaim, isArabic, URGENCY_ORDER } = require('../utils/symptomBrain');
+const { beforeYouGo, checkClaim, isArabic, URGENCY_ORDER } = require('../utils/diagnosis');
 
 const STATUSES = ['Open', 'In Progress', 'Resolved'];
 
 const MAKES = ['Toyota', 'Nissan', 'Lexus', 'Honda', 'Hyundai', 'Kia', 'Mitsubishi', 'Mazda', 'Ford', 'Chevrolet', 'GMC', 'Dodge', 'Jeep', 'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen', 'Porsche', 'Land Rover', 'Other'];
 const YEARS = Array.from({ length: new Date().getFullYear() + 1 - 1990 + 1 }, (_, i) => new Date().getFullYear() + 1 - i);
-const formOptions = { makes: MAKES, years: YEARS };
+const formOptions = { makes: MAKES, years: YEARS, models: MODELS };
 
 const isOpen = (log) => log.status !== 'Resolved';
 const worstOf = (logs) => URGENCY_ORDER.find((level) => logs.some((l) => l.severity === level)) || null;
+const pickModel = (body) => (body.modelPick && body.modelPick !== 'Other' ? body.modelPick : body.modelOther || body.model);
 const toMileage = (value) => (value === '' || value == null ? undefined : Number(value));
 
 const getOwner = (req) => Owner.findOneAndUpdate(
@@ -37,7 +39,9 @@ const index = async (req, res) => {
         const owner = await getOwner(req);
         const cars = await Car.find({ owner: owner._id }).sort({ createdAt: -1 });
         await Promise.all(cars.filter((c) => c.image == null).map(async (c) => {
-            c.image = await findCarImage(c.make, c.model);
+            const image = await findCarImage(c.make, c.model, c.year);
+            if (image === undefined) return;
+            c.image = image;
             await c.save();
         }));
         const carIds = cars.map((c) => c._id);
@@ -81,8 +85,9 @@ const newCar = (req, res) => {
 const createCar = async (req, res) => {
     try {
         const owner = await getOwner(req);
-        const { make, model, year, vin, mileage } = req.body;
-        const image = await findCarImage(make, model);
+        const { make, year, vin, mileage } = req.body;
+        const model = pickModel(req.body);
+        const image = await findCarImage(make, model, year);
         const car = await Car.create({ make, model, year, vin: vin || undefined, mileage: toMileage(mileage), image, owner: owner._id });
         res.redirect(`/garage/${car._id}`);
     } catch (error) {
@@ -145,10 +150,11 @@ const updateCar = async (req, res) => {
     try {
         car = await findMyCar(req);
         if (!car) return res.status(404).render('error.ejs', { message: 'Car not found' });
-        const { make, model, year, vin, mileage } = req.body;
-        const renamed = make !== car.make || model !== car.model;
+        const { make, year, vin, mileage } = req.body;
+        const model = pickModel(req.body);
+        const renamed = make !== car.make || model !== car.model || Number(year) !== car.year;
         Object.assign(car, { make, model, year, vin: vin || undefined, mileage: toMileage(mileage) });
-        if (renamed) car.image = await findCarImage(make, model);
+        if (renamed) car.image = await findCarImage(make, model, year);
         await car.save();
         res.redirect(`/garage/${car._id}`);
     } catch (error) {
