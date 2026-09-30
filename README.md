@@ -25,6 +25,34 @@ Car faults are private: every user sees only their own cars and codes.
 - **Roles**: super owner, admin, moderator and users, with temporary or permanent Agent Control access.
 - **Night theme** that works on phones.
 
+## Extra Features
+
+### From the recommended list
+| Feature | In AutoCode |
+|---------|-------------|
+| Role Management | `superowner`, `admin`, `moderator` and users, each with different access |
+| Admin Dashboard | **Users** page (search by id, add, edit, reset password, delete) and **Agent Control** (settings, corrections, unknown codes, knowledge) |
+| External API | Wikimedia Commons and Wikipedia APIs find a photo for each car by year, make and model |
+| Amazing Styling | Hand-written CSS night theme with a health ring, glowing cards and a pulsing "stop" badge, no CSS library |
+| Animations | Card hover glow, home card lift, pulsing severity badge (turned off for users who prefer reduced motion) |
+
+### Beyond the requirements
+- **Rule-based assistant** built from scratch: understands Arabic (including Gulf dialect) and English, scores likely codes, remembers the conversation and asks a follow-up question
+- **Learns** from codes logged by other drivers of the same make, and from corrections approved in Agent Control
+- **Gender-aware Arabic replies** and answers that adapt to the user's car knowledge level
+- **Temporary or permanent** Agent Control access that ends by itself on its date
+- **VIN decoder** with check digit validation that fills in the make and year
+- **Car health score** from 0 to 100 based on open faults and overdue services
+- **"The garage told me…"** checks what the mechanic said against the car's faults and last oil change
+- **Before you go to the garage** cards: what to check first, what to ask, what not to pay for
+- **Service reminders** by date and mileage, whichever comes first
+- **Search by id** for cars and users, then update or delete
+- **Car tip** on the home page that changes on every visit
+- **Privacy by design**: admins cannot see other users' cars or faults
+- **Security**: login attempt limit, bcrypt passwords, sessions stored in MongoDB, protection against double form submits
+- **Fallbacks**: if a car photo cannot load, the make's first letter shows instead
+- **Site icon** drawn in SVG and a custom 404 page
+
 ## Screenshots
 
 ![Home page](public/images/home.png)
