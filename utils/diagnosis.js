@@ -4,19 +4,19 @@ const SYMPTOMS = [
         id: 'shaking', label: 'Shaking or misfiring', ar: 'رجفة', urgency: 'soon',
         words: ['ترجف', 'رجفه', 'يرجف', 'تهتز', 'اهتزاز', 'رعشه', 'تتنفض', 'shake', 'shaking', 'vibrat', 'misfire', 'rough idle', 'rough'],
         codes: { P0300: 5, P0301: 3, P0302: 3, P0303: 3, P0304: 3, P0171: 2, P0101: 1 },
-        ask: { ar: 'الرجفة تصير وهي واقفة (سلانسيه) ولا وإنت ماشي وتدوس بنزين؟', en: 'Does it shake while standing still (idle) or while driving and accelerating?' }
+        ask: { ar: 'الرجفة تصير والسيارة واقفة (سلانسيه)، ولا وقت المشي والدوس على البنزين؟', en: 'Does it shake while standing still (idle) or while driving and accelerating?' }
     },
     {
         id: 'stalling', label: 'Engine stalls or turns off', ar: 'انطفاء', urgency: 'stop',
         words: ['تطفي', 'طفت', 'تنطفي', 'ينطفي', 'انطفت', 'تموت', 'stall', 'dies', 'shuts off', 'turns off', 'cuts out'],
         codes: { P0505: 4, P0335: 4, P0101: 3, P0171: 2, P0122: 2, P0230: 2 },
-        ask: { ar: 'تطفي وهي واقفة عند الإشارة، ولا حتى وإنت ماشي؟', en: 'Does it turn off when you stop at a light, or even while driving?' }
+        ask: { ar: 'تطفي وهي واقفة عند الإشارة، ولا حتى وهي ماشية؟', en: 'Does it turn off when you stop at a light, or even while driving?' }
     },
     {
         id: 'no-start', label: 'Hard to start or will not start', ar: 'صعوبة تشغيل', urgency: 'soon',
         words: ['ما تشتغل', 'ماتشتغل', 'صعب تشتغل', 'ما تدور', 'ماتدور', 'تتاخر تشتغل', 'won\'t start', 'wont start', 'hard start', 'no start', 'not start', 'cranks'],
         codes: { P0335: 5, P0340: 4, P0230: 3, P0562: 3, P0087: 2 },
-        ask: { ar: 'لما تشغلها، المكينة تدور (تسمع صوت السلف) بس ما تشتغل، ولا ما تسوي أي صوت؟', en: 'When you turn the key, does the engine crank but not start, or does nothing happen at all?' }
+        ask: { ar: 'وقت التشغيل، المكينة تدور (صوت السلف) بس ما تشتغل، ولا ما في أي صوت؟', en: 'When you turn the key, does the engine crank but not start, or does nothing happen at all?' }
     },
     {
         id: 'fuel', label: 'High fuel consumption', ar: 'استهلاك بنزين عالي', urgency: 'drive',
@@ -28,7 +28,7 @@ const SYMPTOMS = [
         id: 'power', label: 'Weak acceleration or no power', ar: 'ضعف في السحب', urgency: 'soon',
         words: ['ضعيفه', 'ما تسحب', 'ماتسحب', 'ثقيله', 'بطيئه', 'ما فيها حيل', 'ما تمشي', 'no power', 'sluggish', 'weak', 'hesitat', 'slow', 'limp'],
         codes: { P0101: 4, P0121: 3, P0299: 3, P0420: 3, P0171: 2, P0300: 2 },
-        ask: { ar: 'السيارة تيربو؟ وهل تحس بريحة أو دخان من الشكمان؟', en: 'Is the car turbocharged? Any smell or smoke from the exhaust?' }
+        ask: { ar: 'السيارة تيربو؟ وفي ريحة أو دخان من الشكمان؟', en: 'Is the car turbocharged? Any smell or smoke from the exhaust?' }
     },
     {
         id: 'smell', label: 'Smoke or bad smell', ar: 'دخان أو ريحة', urgency: 'soon',
@@ -52,94 +52,146 @@ const SYMPTOMS = [
         id: 'light', label: 'Check engine light is on', ar: 'لمبة المكينة', urgency: 'drive',
         words: ['لمبه', 'ضوء المكينه', 'لمبة المكينه', 'check engine', 'engine light', 'warning light', 'mil'],
         codes: { P0420: 2, P0455: 2, P0442: 2, P0171: 2, P0300: 2 },
-        ask: { ar: 'اللمبة ثابتة ولا تومض؟ (إذا تومض لا تسوق السيارة)', en: 'Is the light steady or flashing? (If it flashes, do not drive.)' }
+        ask: { ar: 'اللمبة ثابتة ولا تومض؟ (إذا تومض، الأفضل إيقاف السيارة)', en: 'Is the light steady or flashing? (If it flashes, do not drive.)' }
     },
     {
         id: 'electric', label: 'Battery or electrical problem', ar: 'مشكلة كهرباء', urgency: 'soon',
         words: ['بطاريه', 'كهربا', 'الدينمو', 'دينمو', 'تفصل', 'battery', 'electrical', 'alternator', 'charging', 'dim'],
         codes: { P0562: 5, P0563: 3, P0620: 3, P0622: 2 },
-        ask: { ar: 'الأنوار تضعف لما تشغل المكيف أو وإنت واقف؟', en: 'Do the lights dim when the AC is on or at idle?' }
+        ask: { ar: 'الأنوار تضعف وقت تشغيل المكيف أو والسيارة واقفة؟', en: 'Do the lights dim when the AC is on or at idle?' }
     },
     {
         id: 'noise', label: 'Knocking or engine noise', ar: 'صوت أو طقطقة', urgency: 'soon',
         words: ['طقطقه', 'صوت', 'تطق', 'دقدقه', 'knock', 'ping', 'noise', 'ticking', 'rattle'],
         codes: { P0325: 4, P0011: 3, P0016: 3, P0300: 2 },
-        ask: { ar: 'الصوت يزيد لما تدوس بنزين، ولا يطلع أول ما تشغلها وهي باردة؟', en: 'Does the noise get louder when you accelerate, or only on a cold start?' }
+        ask: { ar: 'الصوت يزيد مع الدوس على البنزين، ولا يطلع بس وقت التشغيل والمكينة باردة؟', en: 'Does the noise get louder when you accelerate, or only on a cold start?' }
     },
     {
         id: 'idle', label: 'Unstable idle (RPM goes up and down)', ar: 'سلانسيه غير ثابت', urgency: 'drive',
         words: ['السلانسيه', 'سلانسيه', 'الدورات', 'الدوره', 'العداد ينزل', 'واقفه', 'rpm', 'idle', 'revs', 'standing still'],
         codes: { P0505: 5, P0506: 4, P0507: 4, P0171: 2 },
-        ask: { ar: 'السلانسيه يزيد وينقص لما تشغل المكيف؟', en: 'Does the idle go up and down when you turn the AC on?' }
+        ask: { ar: 'السلانسيه يزيد وينقص وقت تشغيل المكيف؟', en: 'Does the idle go up and down when you turn the AC on?' }
     }
 ];
 
 const FAMILIES = {
     airFuel: {
         codes: ['P0171', 'P0172', 'P0101', 'P0133', 'P0087', 'P0230'],
+        parts: ['maf', 'fuelPump', 'o2'],
         ar: 'خليط الهوا والبنزين مو مضبوط، يعني المكينة تاخذ هوا زيادة أو بنزين ناقص (أو العكس).',
         en: 'the air and fuel mix is off, the engine is getting too much air or too little fuel (or the reverse).',
-        checkAr: 'ابدأ بالأرخص: نظّف حساس الهوا (MAF)، وشيك على تهريب هوا في الليات، وبعدين فلتر البنزين وطرمبة البنزين.',
-        checkEn: 'Start with the cheapest: clean the air flow sensor (MAF), check for vacuum leaks in the hoses, then the fuel filter and fuel pump.'
+        stepsAr: 'تنظيف حساس الهوا (MAF)، بعدين فحص تهريب الهوا في الليات، بعدين فلتر وطرمبة البنزين.',
+        stepsEn: 'clean the air flow sensor (MAF), check for vacuum leaks in the hoses, then the fuel filter and fuel pump.',
+        questionsAr: ['نظفتوا حساس الهوا قبل ما تبدلونه؟', 'فحصتوا تهريب الهوا في الليات؟', 'ممكن أشوف قراءة الـ Fuel trim على الجهاز؟'],
+        questionsEn: ['Did you clean the MAF sensor before replacing it?', 'Did you check for vacuum leaks?', 'Can I see the fuel trim reading on the scanner?'],
+        avoidAr: 'تبديل الدبة أو قطع المكينة قبل فحص الحساسات والليات.',
+        avoidEn: 'Replacing the catalytic converter or engine parts before the sensors and hoses are checked.'
     },
     ignition: {
         codes: ['P0300', 'P0301', 'P0302', 'P0303', 'P0304', 'P0325'],
+        parts: ['plugs', 'coils', 'knock'],
         ar: 'في سلندر أو أكثر ما يحترق صح (Misfire)، وهذا يسبب الرجفة.',
         en: 'one or more cylinders are not firing properly (misfire), which causes the shaking.',
-        checkAr: 'ابدأ بالأرخص: البواجي (الشمعات)، بعدين الكويلات، بعدين البخاخات.',
-        checkEn: 'Start with the cheapest: spark plugs, then ignition coils, then fuel injectors.'
+        stepsAr: 'البواجي (الشمعات)، بعدين الكويلات، بعدين البخاخات.',
+        stepsEn: 'spark plugs, then ignition coils, then fuel injectors.',
+        questionsAr: ['أي سلندر فيه المشكلة؟', 'بدلتوا الكويل من سلندر لسلندر عشان تتأكدون؟', 'متى آخر مرة تبدلت البواجي؟'],
+        questionsEn: ['Which cylinder is misfiring?', 'Did you swap the coil to another cylinder to confirm?', 'When were the spark plugs last changed?'],
+        avoidAr: 'تبديل كل الكويلات أو فتح المكينة قبل تجربة البواجي.',
+        avoidEn: 'Replacing every coil or opening the engine before trying new spark plugs.'
     },
     idle: {
         codes: ['P0505', 'P0506', 'P0507', 'P0122', 'P0121'],
+        parts: ['throttle'],
         ar: 'نظام التحكم بالسلانسيه أو بوابة الهوا (Throttle) ما يضبط الدورات وهي واقفة.',
         en: 'the idle control or throttle is not holding the RPM steady at idle.',
-        checkAr: 'ابدأ بالأرخص: نظّف بوابة الهوا (الثروتل) وصمام السلانسيه، وشيك على حساس الثروتل.',
-        checkEn: 'Start with the cheapest: clean the throttle body and idle valve, then check the throttle sensor.'
+        stepsAr: 'تنظيف بوابة الهوا (الثروتل) وصمام السلانسيه، بعدين فحص حساس الثروتل.',
+        stepsEn: 'clean the throttle body and idle valve, then check the throttle sensor.',
+        questionsAr: ['نظفتوا الثروتل قبل ما تبدلونه؟', 'سويتوا Idle relearn بعد التنظيف؟', 'في تهريب هوا؟'],
+        questionsEn: ['Did you clean the throttle body before replacing it?', 'Did you run an idle relearn after cleaning?', 'Is there a vacuum leak?'],
+        avoidAr: 'تبديل الثروتل كامل قبل تنظيفه.',
+        avoidEn: 'Replacing the whole throttle body before cleaning it.'
     },
     sensors: {
         codes: ['P0335', 'P0340', 'P0011', 'P0016'],
+        parts: ['crank', 'cam'],
         ar: 'الكمبيوتر ما يقرأ مكان الكرنك أو الكامات صح، فيتلخبط توقيت الاشتعال.',
         en: 'the computer is not reading the crankshaft or camshaft position correctly, so ignition timing goes wrong.',
-        checkAr: 'شيك على حساس الكرنك والكامات وأسلاكهم، وبعدين زيت المكينة (مستواه ونظافته) لأنه يأثر على التوقيت.',
-        checkEn: 'Check the crank and cam sensors and their wiring, then the engine oil level and condition, which affects timing.'
+        stepsAr: 'فحص حساس الكرنك والكامات وأسلاكهم، بعدين زيت المكينة (مستواه ونظافته) لأنه يأثر على التوقيت.',
+        stepsEn: 'check the crank and cam sensors and their wiring, then the engine oil level and condition, which affects timing.',
+        questionsAr: ['فحصتوا الأسلاك قبل الحساس؟', 'مستوى الزيت ونظافته زينة؟', 'المشكلة في الحساس ولا في سير التايمن؟'],
+        questionsEn: ['Did you check the wiring before the sensor?', 'Is the oil level and condition good?', 'Is it the sensor or the timing belt or chain?'],
+        avoidAr: 'تبديل سير أو جنزير التايمن بدون فحص يثبت إن فيه مشكلة.',
+        avoidEn: 'Replacing the timing belt or chain without a test that proves it is the problem.'
     },
     exhaust: {
         codes: ['P0420', 'P0442', 'P0455', 'P0299'],
+        parts: ['cat', 'o2'],
         ar: 'المشكلة في الشكمان أو الدبة (الكتلايزر) أو نظام أبخرة البنزين.',
         en: 'the problem is in the exhaust, the catalytic converter, or the fuel vapor system.',
-        checkAr: 'ابدأ بالأرخص: تأكد إن غطا البنزين مسكّر زين، بعدين حساسات الأكسجين، وآخر شي الدبة لأنها غالية.',
-        checkEn: 'Start with the cheapest: make sure the fuel cap is tight, then the oxygen sensors, and the catalytic converter last because it is expensive.'
+        stepsAr: 'التأكد إن غطا البنزين مسكّر زين، بعدين حساسات الأكسجين، وآخر شي الدبة لأنها غالية.',
+        stepsEn: 'make sure the fuel cap is tight, then the oxygen sensors, and the catalytic converter last because it is expensive.',
+        questionsAr: ['فحصتوا حساسات الأكسجين قبل الدبة؟', 'في تهريب في الشكمان؟', 'ممكن أشوف قراءة الحساسين على الجهاز؟'],
+        questionsEn: ['Did you test the oxygen sensors before the converter?', 'Is there an exhaust leak?', 'Can I see both O2 sensor readings on the scanner?'],
+        avoidAr: 'تبديل الدبة (غالية) قبل فحص حساسات الأكسجين وغطا البنزين.',
+        avoidEn: 'Replacing the catalytic converter (expensive) before checking the oxygen sensors and fuel cap.'
     },
     cooling: {
         codes: ['P0217', 'P0128', 'P0117', 'P0118', 'P0480'],
+        parts: ['thermostat', 'fan', 'coolantSensor'],
         ar: 'نظام التبريد مو قاعد يبرد المكينة صح.',
         en: 'the cooling system is not keeping the engine cool.',
-        checkAr: 'وقّف السيارة وخلها تبرد. شيك على مستوى الماي، ومروحة الرديتر، والثرموستات.',
-        checkEn: 'Stop and let it cool down. Check the coolant level, the radiator fan, and the thermostat.'
+        stepsAr: 'إيقاف السيارة وتبريدها، بعدين فحص مستوى الماي، ومروحة الرديتر، والثرموستات.',
+        stepsEn: 'stop and let it cool down, then check the coolant level, the radiator fan, and the thermostat.',
+        questionsAr: ['في تهريب ماي؟', 'المروحة تشتغل؟', 'الثرموستات يفتح؟'],
+        questionsEn: ['Is there a coolant leak?', 'Does the fan turn on?', 'Does the thermostat open?'],
+        avoidAr: 'تبديل الرديتر أو فتح المكينة قبل فحص الثرموستات والمروحة.',
+        avoidEn: 'Replacing the radiator or opening the engine before checking the thermostat and fan.'
     },
     transmission: {
         codes: ['P0700', 'P0730', 'P0715', 'P0740', 'P0750'],
+        parts: ['gearbox'],
         ar: 'كمبيوتر القير لقى مشكلة في التبديل أو في حساسات القير.',
         en: 'the gearbox computer found a problem with shifting or its sensors.',
-        checkAr: 'ابدأ بالأرخص: شيك على مستوى زيت القير ولونه (إذا محروق أو أسود بدله)، بعدين حساسات السرعة.',
-        checkEn: 'Start with the cheapest: check the gearbox oil level and color (replace it if it is dark or burnt), then the speed sensors.'
+        stepsAr: 'فحص مستوى زيت القير ولونه (إذا محروق أو أسود يتبدل)، بعدين حساسات السرعة.',
+        stepsEn: 'check the gearbox oil level and color (replace it if it is dark or burnt), then the speed sensors.',
+        questionsAr: ['شنو الكود الثاني اللي مع P0700؟', 'زيت القير محروق؟', 'المشكلة في حساس ولا في القير نفسه؟'],
+        questionsEn: ['What is the second code stored with P0700?', 'Is the gearbox oil burnt?', 'Is it a sensor or the gearbox itself?'],
+        avoidAr: 'تبديل القير كامل قبل قراءة كود القير الثاني وفحص الزيت والحساسات.',
+        avoidEn: 'Replacing the whole gearbox before reading the second code and checking the oil and sensors.'
     },
     electrical: {
         codes: ['P0562', 'P0563', 'P0620', 'P0622'],
+        parts: ['battery'],
         ar: 'الكهرباء في السيارة مو ثابتة، غالبًا من البطارية أو الدينمو.',
-        en: 'the car\'s voltage is not stable, usually from the battery or the alternator.',
-        checkAr: 'ابدأ بالأرخص: نظّف أقطاب البطارية وافحصها، بعدين افحص شحن الدينمو.',
-        checkEn: 'Start with the cheapest: clean and test the battery terminals, then test the alternator charging.'
+        en: 'the car voltage is not stable, usually from the battery or the alternator.',
+        stepsAr: 'تنظيف أقطاب البطارية وفحصها، بعدين فحص شحن الدينمو.',
+        stepsEn: 'clean and test the battery terminals, then test the alternator charging.',
+        questionsAr: ['فحصتوا البطارية بجهاز؟', 'كم يشحن الدينمو (فولت)؟', 'الأقطاب نظيفة؟'],
+        questionsEn: ['Did you test the battery with a tester?', 'What voltage is the alternator charging at?', 'Are the terminals clean?'],
+        avoidAr: 'تبديل الدينمو قبل فحص البطارية والأقطاب.',
+        avoidEn: 'Replacing the alternator before testing the battery and terminals.'
     }
 };
 
 const URGENCY_ORDER = ['stop', 'soon', 'unknown', 'drive'];
 
-const URGENCY_TEXT = {
-    stop: { ar: '⚠️ لا تسوق السيارة لين تنفحص، ممكن تسبب ضرر أكبر أو خطر عليك.', en: '⚠️ Do not drive until it is checked, it can cause more damage or put you at risk.' },
-    soon: { ar: 'تقدر تسوقها مسافات قصيرة، بس ودها الورشة قريب.', en: 'You can drive short distances, but take it to a workshop soon.' },
-    drive: { ar: 'مو خطيرة الحين، بس لا تطنشها.', en: 'Not dangerous right now, but do not ignore it.' },
-    unknown: { ar: 'خلها تنفحص بجهاز OBD عشان نعرف بالضبط.', en: 'Have it scanned with an OBD reader to know for sure.' }
+const g = (gender, male, female, neutral) => (gender === 'male' ? male : gender === 'female' ? female : neutral);
+
+const urgencyText = (urgency, lang, gender) => {
+    if (lang !== 'ar') {
+        return {
+            stop: '⚠️ Do not drive until it is checked, it can cause more damage or put you at risk.',
+            soon: 'You can drive short distances, but take it to a workshop soon.',
+            drive: 'Not dangerous right now, but do not ignore it.',
+            unknown: 'Have it scanned with an OBD reader to know for sure.'
+        }[urgency];
+    }
+    return {
+        stop: `⚠️ ${g(gender, 'لا تسوق السيارة', 'لا تسوقين السيارة', 'لا يُنصح بقيادة السيارة')} لين تنفحص، ممكن تسبب ضرر أكبر أو خطر.`,
+        soon: g(gender, 'تقدر تسوقها مسافات قصيرة، بس ودها الورشة قريب.', 'تقدرين تسوقينها مسافات قصيرة، بس وديها الورشة قريب.', 'ممكن القيادة مسافات قصيرة، بس تحتاج ورشة قريب.'),
+        drive: g(gender, 'مو خطيرة الحين، بس لا تطنشها.', 'مو خطيرة الحين، بس لا تطنشينها.', 'مو خطيرة الحين، بس لازم تنصلح.'),
+        unknown: g(gender, 'خلها تنفحص بجهاز OBD عشان نعرف بالضبط.', 'خليها تنفحص بجهاز OBD عشان نعرف بالضبط.', 'تحتاج فحص بجهاز OBD عشان نعرف بالضبط.')
+    }[urgency];
 };
 
 const normalize = (text) => String(text || '')
@@ -185,25 +237,33 @@ const think = (messages) => {
     return { matched, candidates, urgency };
 };
 
-const reply = ({ lang, symptoms, top, urgency, carName, asked = [] }) => {
+const reply = ({ lang, symptoms, top, urgency, carName, asked = [], gender, level = 'beginner' }) => {
     const ar = lang === 'ar';
     const lines = [];
 
-    if (symptoms.length) {
+    if (symptoms.length && level !== 'expert') {
         const list = symptoms.map((s) => (ar ? s.ar : s.label.toLowerCase())).join(ar ? '، و' : ', ');
-        lines.push(ar
-            ? `فهمت إن ${carName ? `الـ ${carName} حقتك فيها` : 'سيارتك فيها'}: ${list}.`
-            : `So your ${carName || 'car'} has: ${list}.`);
+        const car = carName
+            ? `الـ ${carName} ${g(gender, 'حقتك', 'حقتج', '')}`.trim()
+            : g(gender, 'سيارتك', 'سيارتج', 'السيارة');
+        lines.push(ar ? `فهمت إن ${car} فيها: ${list}.` : `So your ${carName || 'car'} has: ${list}.`);
     }
 
     if (top) {
         const family = familyOf(top.code);
-        const pct = top.confidence ? (ar ? ` (${top.confidence}%)` : ` (${top.confidence}%)`) : '';
+        const pct = top.confidence ? ` (${top.confidence}%)` : '';
         if (family) {
             lines.push(ar
                 ? `${symptoms.length > 1 ? 'لما تجتمع هالأعراض مع بعض، ' : ''}غالبًا ${family.ar} أقرب احتمال هو ${top.code}${pct}: ${top.name}.`
                 : `${symptoms.length > 1 ? 'Put together, ' : ''}most likely ${family.en} The closest match is ${top.code}${pct}: ${top.name}.`);
-            lines.push(ar ? family.checkAr : family.checkEn);
+            lines.push(ar
+                ? `${g(gender, 'ابدأ بالأرخص', 'ابدئي بالأرخص', 'الأفضل البداية بالأرخص')}: ${family.stepsAr}`
+                : `Start with the cheapest: ${family.stepsEn}`);
+            if (level === 'beginner') {
+                lines.push(ar
+                    ? `${g(gender, 'اسأل الميكانيكي', 'اسألي الميكانيكي', 'سؤال مهم للميكانيكي')}: "${family.questionsAr[0]}"`
+                    : `Ask the mechanic: "${family.questionsEn[0]}"`);
+            }
         } else {
             lines.push(ar
                 ? `أقرب احتمال هو ${top.code}${pct}: ${top.name}.`
@@ -211,7 +271,7 @@ const reply = ({ lang, symptoms, top, urgency, carName, asked = [] }) => {
         }
         if (top.hadBefore) {
             lines.push(ar
-                ? 'وانتبه: هالكود طلع في سيارتك قبل، يعني يمكن التصليح الأول ما حل السبب.'
+                ? `${g(gender, 'وانتبه', 'وانتبهي', 'ملاحظة')}: هالكود طلع في ${g(gender, 'سيارتك', 'سيارتج', 'السيارة')} قبل، يعني يمكن التصليح الأول ما حل السبب.`
                 : 'Note: this code showed up on your car before, so the last repair may not have fixed the cause.');
         }
         if (top.seen) {
@@ -221,7 +281,7 @@ const reply = ({ lang, symptoms, top, urgency, carName, asked = [] }) => {
         }
     }
 
-    if (urgency) lines.push(ar ? URGENCY_TEXT[urgency].ar : URGENCY_TEXT[urgency].en);
+    if (urgency) lines.push(urgencyText(urgency, lang, gender));
 
     const next = symptoms.find((s) => s.ask && !asked.includes(s.id));
     return {
@@ -356,6 +416,15 @@ const PARTS = [
         jobAr: 'يسمع الطقطقة في المكينة عشان الكمبيوتر يأخر الشرارة.',
         jobEn: 'Listens for engine knock so the computer can retard the spark.',
         codes: ['P0325', 'P0330']
+    },
+    {
+        id: 'gearbox', ar: 'القير', en: 'Gearbox (transmission)',
+        words: ['القير', 'قير', 'الجير', 'gearbox', 'transmission'],
+        whereAr: 'تحت السيارة ورا المكينة، ومربوط فيها.',
+        whereEn: 'Under the car, bolted to the back of the engine.',
+        jobAr: 'ينقل قوة المكينة للتواير ويبدل الغيارات.',
+        jobEn: 'Sends engine power to the wheels and changes gears.',
+        codes: ['P0700', 'P0715', 'P0730', 'P0740', 'P0750']
     }
 ].map((p) => ({ ...p, matchers: p.words.map(toMatcher) }));
 
@@ -371,4 +440,83 @@ const partReply = (part, lang) => {
         : `${part.en}: ${part.whereEn} What it does: ${part.jobEn} Related codes: ${part.codes.join(', ')}.`;
 };
 
-module.exports = { think, reply, isArabic, familyOf, findPart, partReply, SYMPTOMS, URGENCY_ORDER };
+const OIL_WORDS = ['غيار زيت', 'زيت المكينه', 'تبديل الزيت', 'نبدل الزيت', 'oil change', 'change the oil', 'engine oil'].map(toMatcher);
+
+const beforeYouGo = (code) => {
+    const family = familyOf(code);
+    if (!family) {
+        return {
+            plainEn: 'this code is not in one of the groups the assistant knows yet.',
+            stepsEn: 'ask the workshop to show you the code on their scanner and explain what they will check first.',
+            questionsEn: ['What does this code mean exactly?', 'What will you check first, and how much does the check cost?', 'Can I keep the old part?'],
+            avoidEn: 'Paying for a repair before they explain how it is linked to the code.'
+        };
+    }
+    return { plainEn: family.en, stepsEn: family.stepsEn, questionsEn: family.questionsEn, avoidEn: family.avoidEn };
+};
+
+const showMeAr = (gender) => g(
+    gender,
+    'اطلب منهم يورونك الكود على جهاز الفحص',
+    'اطلبي منهم يورونج الكود على جهاز الفحص',
+    'الأفضل الطلب منهم إنهم يورون الكود على جهاز الفحص'
+);
+
+const checkClaim = ({ text, openCodes = [], lastOil = null, carMileage = null, lang = 'en', gender }) => {
+    const ar = lang === 'ar';
+    const input = normalize(text);
+
+    if (OIL_WORDS.some((match) => match(input)) && lastOil) {
+        const months = (Date.now() - new Date(lastOil.date)) / (30 * 24 * 60 * 60 * 1000);
+        const km = lastOil.mileage != null && carMileage != null ? carMileage - lastOil.mileage : null;
+        if (months < 5 && (km == null || km < 8000)) {
+            const count = Math.max(1, Math.round(months));
+            const ago = km != null
+                ? (ar ? `${km.toLocaleString()} كم` : `${km.toLocaleString()} km`)
+                : (ar ? `${count} شهر` : `${count} month${count === 1 ? '' : 's'}`);
+            return {
+                verdict: 'warning',
+                text: ar
+                    ? `⚠️ آخر غيار زيت كان قبل ${ago} بس، يعني بعد ما حان وقته. ${g(gender, 'اسأله', 'اسأليه', 'السؤال المهم')}: "ليش نحتاج نغيره الحين؟"`
+                    : `⚠️ The last oil change was only ${ago} ago, so it is not due yet. Ask them: "Why does it need changing now?"`
+            };
+        }
+    }
+
+    const part = findPart(text);
+    if (!part) {
+        return {
+            verdict: 'unknown',
+            text: ar
+                ? `ما قدرت أعرف القطعة من الكلام. ${showMeAr(gender)}، ويشرحون شلون القطعة مرتبطة فيه.`
+                : 'I could not tell which part they mean. Ask them to show you the code on their scanner and explain how the part is linked to it.'
+        };
+    }
+
+    const name = ar ? part.ar : part.en;
+    const related = openCodes.filter((c) => part.codes.includes(c) || (familyOf(c) && familyOf(c).parts.includes(part.id)));
+    if (related.length) {
+        return {
+            verdict: 'ok',
+            text: ar
+                ? `✅ منطقي: ${name} مرتبطة بالكود ${related.join('، ')} اللي في السيارة. ${g(gender, 'اسأله', 'اسأليه', 'سؤال مهم')}: "فحصتوها قبل ما تبدلونها؟" ${g(gender, 'واطلب', 'واطلبي', 'والأفضل طلب')} القطعة القديمة.`
+                : `✅ Makes sense: the ${part.en} is linked to ${related.join(', ')} on this car. Ask: "Did you test it before replacing it?" and ask to keep the old part.`
+        };
+    }
+    if (!openCodes.length) {
+        return {
+            verdict: 'warning',
+            text: ar
+                ? `⚠️ ما في أي عطل مفتوح مسجل على السيارة. قبل تبديل ${name}، ${showMeAr(gender)}.`
+                : `⚠️ There are no open faults logged on this car. Before replacing the ${part.en}, ask them to show you the code on their scanner.`
+        };
+    }
+    return {
+        verdict: 'warning',
+        text: ar
+            ? `⚠️ ${name} ما لها علاقة بالأعطال المسجلة (${openCodes.join('، ')}). ${g(gender, 'اسأله', 'اسأليه', 'السؤال المهم')}: "شلون هالقطعة مرتبطة بالعطل؟" و${g(gender, 'لا تدفع', 'لا تدفعين', 'الأفضل عدم الدفع')} لين يشرحون.`
+            : `⚠️ The ${part.en} is not linked to the logged faults (${openCodes.join(', ')}). Ask: "How is this part linked to the fault?" and do not pay until they explain.`
+    };
+};
+
+module.exports = { think, reply, isArabic, familyOf, findPart, partReply, beforeYouGo, checkClaim, SYMPTOMS, URGENCY_ORDER };

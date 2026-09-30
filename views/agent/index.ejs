@@ -85,14 +85,14 @@
             </div>
         <% }) %>
 
-        <% if (answer.brain) { %>
-            <section class="brain">
+        <% if (answer.analysis) { %>
+            <section class="analysis">
                 <h2>What I understood</h2>
                 <div class="symptoms">
-                    <% answer.brain.symptoms.forEach(s => { %><span class="chip"><%= s.label %></span><% }) %>
+                    <% answer.analysis.symptoms.forEach(s => { %><span class="chip"><%= s.label %></span><% }) %>
                 </div>
-                <p class="brain-lead">Most likely causes<%= carName ? ` on your ${carName}` : '' %>:</p>
-                <% answer.brain.suggestions.forEach(s => { %>
+                <p class="analysis-lead">Most likely causes<%= carName ? ` on your ${carName}` : '' %>:</p>
+                <% answer.analysis.suggestions.forEach(s => { %>
                     <div class="guess">
                         <div class="guess-head">
                             <strong><%= s.code %></strong>
@@ -107,7 +107,7 @@
                         <% if (car) { %>
                             <form action="/garage/<%= car._id %>/logs" method="POST">
                                 <input type="hidden" name="code" value="<%= s.code %>">
-                                <input type="hidden" name="note" value="Suggested by the assistant: <%= answer.brain.symptoms.map(x => x.label).join(', ') %>">
+                                <input type="hidden" name="note" value="Suggested by the assistant: <%= answer.analysis.symptoms.map(x => x.label).join(', ') %>">
                                 <button>Log on my <%= carName %></button>
                             </form>
                         <% } %>
@@ -134,7 +134,7 @@
             </ul>
         <% } %>
 
-        <% if (!answer.said && !answer.results.length && !answer.brain && !answer.knowledge.length && !answer.openLogs.length) { %>
+        <% if (!answer.said && !answer.results.length && !answer.analysis && !answer.knowledge.length && !answer.openLogs.length) { %>
             <p>I could not find an answer. Describe what the car is doing (shaking, overheating, hard to start...) or type the code, for example P0420.</p>
         <% } %>
 

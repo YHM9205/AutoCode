@@ -16,7 +16,7 @@ const CodeLog = require('../models/CodeLog');
     }
 
     const user = await User.findOne(
-        mongoose.isValidObjectId(search) ? { _id: search } : { $or: [{ username: search }, { email: search.toLowerCase() }] }
+        mongoose.isValidObjectId(search) ? { _id: search } : { $or: [{ username: search.toLowerCase() }, { email: search.toLowerCase() }] }
     ).select('-password -__v').lean();
 
     if (!user) {

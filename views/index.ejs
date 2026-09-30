@@ -1,7 +1,34 @@
 <%- include('partials/head') %>
-<h1>Welcome to Auto-Code 🚗</h1>
-<p>Your bridge between your car and software diagnostics.</p>
-<% if (!user) { %>
-    <p>Sign up today to start logging your car's OBD-II codes!</p>
-<% } %>
+<section class="hero">
+    <p class="eyebrow">Auto Code</p>
+    <h1>Know your car before you walk into the garage.</h1>
+    <p class="lead">Log your car's fault codes, understand them in plain words, and check what the mechanic tells you.</p>
+    <% if (!user) { %>
+        <div class="card-actions">
+            <a href="/auth/signup" class="button-link">Create a free account</a>
+            <a href="/auth/login" class="button-ghost">Log in</a>
+        </div>
+    <% } %>
+</section>
+
+<section class="home-cards" aria-label="Main pages">
+    <a href="/garage" class="home-card">
+        <span class="home-icon" aria-hidden="true">🚗</span>
+        <h2>My Garage</h2>
+        <p>Your cars' health score, open faults and the next service, all on one dashboard.</p>
+        <span class="home-go">Open dashboard →</span>
+    </a>
+    <a href="/agent" class="home-card">
+        <span class="home-icon" aria-hidden="true">💬</span>
+        <h2>Assistant</h2>
+        <p>Describe what the car is doing in Arabic or English and get the likely causes and what to check first.</p>
+        <span class="home-go">Ask the assistant →</span>
+    </a>
+    <a href="/obd" class="home-card">
+        <span class="home-icon" aria-hidden="true">🔎</span>
+        <h2>OBD Codes</h2>
+        <p>Look up any of 9,533 fault codes: what it means, how serious it is, and what fixes it.</p>
+        <span class="home-go">Search codes →</span>
+    </a>
+</section>
 <%- include('partials/foot') %>

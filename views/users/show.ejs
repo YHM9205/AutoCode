@@ -14,6 +14,18 @@
 <form action="/users/<%= shownUser._id %>?_method=PUT" method="POST">
     <input name="username" value="<%= shownUser.username %>" required>
     <input name="email" type="email" value="<%= shownUser.email %>" required>
+    <% if (isMe) { %>
+        <select name="gender" aria-label="Gender">
+            <option value="" <%= !shownUser.gender ? 'selected' : '' %>>Gender</option>
+            <option value="male" <%= shownUser.gender === 'male' ? 'selected' : '' %>>Male</option>
+            <option value="female" <%= shownUser.gender === 'female' ? 'selected' : '' %>>Female</option>
+        </select>
+        <select name="level" aria-label="How well do you know cars?">
+            <option value="beginner" <%= shownUser.level === 'beginner' ? 'selected' : '' %>>I don't know much</option>
+            <option value="intermediate" <%= shownUser.level === 'intermediate' ? 'selected' : '' %>>I know a bit</option>
+            <option value="expert" <%= shownUser.level === 'expert' ? 'selected' : '' %>>Engineer 🔧</option>
+        </select>
+    <% } %>
     <% if (isSuperOwner && !isMe) { %>
         <select name="role">
             <% roles.forEach(r => { %>
