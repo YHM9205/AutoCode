@@ -1,7 +1,7 @@
 <% const current = typeof car !== 'undefined' ? car : {}; %>
 <% const listed = Boolean(current.model && models[current.make] && models[current.make].includes(current.model)); %>
 <% const typed = Boolean(current.model && !listed); %>
-<select name="make" id="make" required>
+<select name="make" id="make" data-models="<%= JSON.stringify(models) %>" required>
     <% if (!current.make) { %><option value="" disabled selected>Make</option><% } %>
     <% (current.make && !makes.includes(current.make) ? [current.make, ...makes] : makes).forEach(m => { %>
         <option value="<%= m %>" <%= current.make === m ? 'selected' : '' %>><%= m %></option>
@@ -16,8 +16,8 @@
 </select>
 <input name="modelOther" id="model-other" placeholder="Type the model" value="<%= typed ? current.model : '' %>" <%= typed ? '' : 'hidden' %>>
 <script>
-    const MODELS = <%- JSON.stringify(models) %>;
     const makeSelect = document.getElementById('make');
+    const MODELS = JSON.parse(makeSelect.dataset.models);
     const modelPick = document.getElementById('model-pick');
     const modelOther = document.getElementById('model-other');
     const syncOther = () => {
