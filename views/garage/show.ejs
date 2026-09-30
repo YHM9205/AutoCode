@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+<%- include('../partials/head', { title: `${car.year} ${car.make} ${car.model}` }) %>
 <section class="dash-head">
     <%- include('../partials/carPhoto', { car, size: 'car-photo-side' }) %>
     <div class="dash-title">
@@ -154,6 +154,8 @@
         </tbody>
     </table>
     </div>
+    <% } else { %>
+    <p class="muted">No services logged yet.</p>
     <% } %>
 </section>
 

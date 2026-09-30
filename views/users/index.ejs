@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+<%- include('../partials/head', { title: 'Users' }) %>
 <h1>Users</h1>
 <% if (user.role === 'superowner') { %><p><a href="/users/new" class="button-link">+ Add user</a></p><% } %>
 <form action="/users" method="GET" class="search-form">
@@ -6,10 +6,14 @@
     <button>Search</button>
 </form>
 <% if (error) { %><p class="error"><%= error %></p><% } %>
+<% if (!users.length) { %>
+<p class="muted">No users found.</p>
+<% } else { %>
 <table>
     <thead>
         <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Agent Control</th><th>Joined</th></tr>
     </thead>
+    <tbody>
     <% users.forEach(u => { %>
         <tr>
             <td><a href="/users/<%= u._id %>"><%= u._id %></a></td>
@@ -24,5 +28,7 @@
             <td><%= u.createdAt.toLocaleDateString() %></td>
         </tr>
     <% }) %>
+    </tbody>
 </table>
+<% } %>
 <%- include('../partials/foot') %>

@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+<%- include('../partials/head', { title: 'Sign up' }) %>
 <h1>Sign Up for Auto-Code</h1>
 <% if (error) { %><p class="error" role="alert"><%= error %></p><% } %>
 <form action="/auth/signup" method="POST">
@@ -36,12 +36,12 @@
         </select>
     </div>
     <div>
-        <label for="password">Password (min 6 characters):</label>
-        <input type="password" name="password" id="password" minlength="6" required>
+        <label for="password">Password (more than 6 characters):</label>
+        <input type="password" name="password" id="password" minlength="7" required>
     </div>
     <div>
         <label for="confirmPassword">Confirm Password:</label>
-        <input type="password" name="confirmPassword" id="confirmPassword" minlength="6" required>
+        <input type="password" name="confirmPassword" id="confirmPassword" minlength="7" required>
     </div>
     <button type="submit">Sign Up</button>
 </form>

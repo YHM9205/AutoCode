@@ -91,6 +91,7 @@ const createCar = async (req, res) => {
         const car = await Car.create({ make, model, year, vin: vin || undefined, mileage: toMileage(mileage), image, owner: owner._id });
         res.redirect(`/garage/${car._id}`);
     } catch (error) {
+        console.log(error);
         res.status(400).render('garage/new.ejs', { ...formOptions, error: error.message });
     }
 };
@@ -158,6 +159,7 @@ const updateCar = async (req, res) => {
         await car.save();
         res.redirect(`/garage/${car._id}`);
     } catch (error) {
+        console.log(error);
         if (!car) return res.status(500).render('error.ejs', { message: 'Something went wrong' });
         res.status(400).render('garage/edit.ejs', { ...formOptions, car, error: error.message });
     }

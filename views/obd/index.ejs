@@ -1,10 +1,15 @@
-<%- include('../partials/head') %>
+<%- include('../partials/head', { title: 'OBD Codes' }) %>
 <h1>OBD-II Codes</h1>
 <form method="GET" action="/obd">
     <input name="q" value="<%= q %>" placeholder="Search e.g. P03">
     <button>Search</button>
 </form>
+<% if (!codes.length) { %>
+<p class="muted">No codes found<%= q ? ` for "${q}"` : '' %>.</p>
+<% } else { %>
 <table>
+    <thead><tr><th>Code</th><th>Meaning and fix</th><th>Severity</th></tr></thead>
+    <tbody>
     <% codes.forEach(c => { %>
         <tr>
             <td><strong><%= c.code %></strong></td>
@@ -12,5 +17,7 @@
             <td><%- include('../partials/severity', { level: c.severity }) %></td>
         </tr>
     <% }) %>
+    </tbody>
 </table>
+<% } %>
 <%- include('../partials/foot') %>

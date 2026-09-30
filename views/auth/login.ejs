@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+<%- include('../partials/head', { title: 'Log in' }) %>
 <h1>Login to Auto-Code</h1>
 <% if (error) { %><p class="error" role="alert"><%= error %></p><% } %>
 <form action="/auth/login" method="POST">

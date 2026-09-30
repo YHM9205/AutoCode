@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+<%- include('../partials/head', { title: isMe ? 'My Profile' : shownUser.username }) %>
 <% const canSeeList = ['admin', 'superowner'].includes(user.role); %>
 <% const cantDeleteSelf = isMe && ['moderator', 'admin', 'superowner'].includes(shownUser.role); %>
 <h1><%= isMe ? 'My Profile' : shownUser.username %></h1>
@@ -63,14 +63,14 @@
     <% if (isMe) { %>
         <input name="currentPassword" type="password" placeholder="Current password" required>
     <% } %>
-    <input name="newPassword" type="password" placeholder="New password (min 6 characters)" minlength="6" required>
-    <input name="confirmPassword" type="password" placeholder="Confirm new password" minlength="6" required>
+    <input name="newPassword" type="password" placeholder="New password (more than 6 characters)" minlength="7" required>
+    <input name="confirmPassword" type="password" placeholder="Confirm new password" minlength="7" required>
     <button>Save password</button>
 </form>
 
 <% if (isMe || isSuperOwner) { %>
 <h2>Cars (<%= cars.length %>)</h2>
-<% if (!cars.length) { %><p>No cars.</p><% } %>
+<% if (!cars.length) { %><p class="muted">No cars yet.</p><% } %>
 <ul>
     <% cars.forEach(car => { %>
         <li><%= car.year %> <%= car.make %> <%= car.model %><%= car.vin ? ` (${car.vin})` : '' %></li>
@@ -83,6 +83,7 @@
     <thead>
         <tr><th>Date Logged</th><th>Vehicle</th><th>DTC</th><th>Severity</th><th>Repair Status</th></tr>
     </thead>
+    <tbody>
     <% logs.forEach(log => { %>
         <tr>
             <td><%= log.createdAt.toLocaleDateString() %></td>
@@ -95,7 +96,10 @@
             <td><%= log.status %></td>
         </tr>
     <% }) %>
+    </tbody>
 </table>
+<% } else { %>
+<p class="muted">No codes logged yet.</p>
 <% } %>
 <% } %>
 

@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+<%- include('../partials/head', { title: 'Agent Control' }) %>
 <h1>Agent Control</h1>
 
 <h2>Settings</h2>
@@ -29,7 +29,10 @@
             <td><%= f.correction %></td>
             <td>
                 <form action="/agent/admin/feedback/<%= f._id %>?_method=PUT" method="POST"><button>Approve</button></form>
-                <form action="/agent/admin/feedback/<%= f._id %>?_method=DELETE" method="POST"><button class="danger">Reject</button></form>
+                <details class="danger-zone">
+                    <summary>Reject</summary>
+                    <form action="/agent/admin/feedback/<%= f._id %>?_method=DELETE" method="POST"><button class="danger">Yes, reject</button></form>
+                </details>
             </td>
         </tr>
     <% }) %>
@@ -70,11 +73,16 @@
             <td><%= k.topic %></td>
             <td><%= k.content %></td>
             <td>
-                <form action="/agent/admin/knowledge/<%= k._id %>?_method=DELETE" method="POST"><button class="danger">Delete</button></form>
+                <details class="danger-zone">
+                    <summary>Delete</summary>
+                    <form action="/agent/admin/knowledge/<%= k._id %>?_method=DELETE" method="POST"><button class="danger">Yes, delete</button></form>
+                </details>
             </td>
         </tr>
     <% }) %>
     </tbody>
 </table>
+<% } else { %>
+<p class="muted">No knowledge added yet.</p>
 <% } %>
 <%- include('../partials/foot') %>

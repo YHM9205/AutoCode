@@ -1,11 +1,11 @@
-<%- include('../partials/head') %>
+<%- include('../partials/head', { title: 'Add user' }) %>
 <h1>Add user</h1>
 <% if (error) { %><p class="error"><%= error %></p><% } %>
 <form action="/users" method="POST">
     <input name="username" value="<%= values.username || '' %>" placeholder="Username" minlength="2" maxlength="50" required>
     <input name="email" type="email" value="<%= values.email || '' %>" placeholder="Email" required>
     <input name="fullName" value="<%= values.fullName || '' %>" placeholder="Full name (optional)">
-    <input name="password" type="password" placeholder="Password (min 6 characters)" minlength="6" required>
+    <input name="password" type="password" placeholder="Password (more than 6 characters)" minlength="7" required>
     <select name="role">
         <% roles.forEach(r => { %>
             <option value="<%= r %>" <%= (values.role || 'user') === r ? 'selected' : '' %>><%= r %></option>

@@ -45,7 +45,7 @@ const create = async (req, res) => {
     const values = { username, email, role, fullName };
     const fail = (error) => res.status(400).render('users/new.ejs', { roles: ASSIGNABLE_ROLES, values, error });
     try {
-        if (String(password || '').length < 6) return fail('Password must be at least 6 characters');
+        if (String(password || '').length <= 6) return fail('Password must be more than 6 characters');
         const user = await User.create({
             username,
             email,
@@ -55,6 +55,7 @@ const create = async (req, res) => {
         await Owner.create({ user: user._id, fullName: String(fullName || '').trim() || user.username });
         res.redirect(`/users/${user._id}?saved=1`);
     } catch (error) {
+        console.log(error);
         fail(error.code === 11000 ? 'Username or email already used' : error.message);
     }
 };
@@ -104,6 +105,7 @@ const update = async (req, res) => {
         await shownUser.save();
         res.redirect(`/users/${shownUser._id}?saved=1`);
     } catch (error) {
+        console.log(error);
         const message = error.code === 11000 ? 'Username or email already used' : error.message;
         res.redirect(`/users/${req.params.id}?error=${encodeURIComponent(message)}`);
     }
@@ -145,7 +147,7 @@ const updatePassword = async (req, res) => {
         if (isMe(req) && !(await bcrypt.compare(String(currentPassword || ''), shownUser.password))) {
             return back('Current password is wrong');
         }
-        if (String(newPassword || '').length < 6) return back('Password must be at least 6 characters');
+        if (String(newPassword || '').length <= 6) return back('Password must be more than 6 characters');
         if (newPassword !== confirmPassword) return back('Passwords do not match');
 
         shownUser.password = await bcrypt.hash(newPassword, 10);

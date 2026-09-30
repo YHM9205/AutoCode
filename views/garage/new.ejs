@@ -1,4 +1,4 @@
-<%- include('../partials/head') %>
+<%- include('../partials/head', { title: 'Add a car' }) %>
 <h1>Add a car</h1>
 <% if (error) { %><p class="error"><%= error %></p><% } %>
 <form action="/garage" method="POST">

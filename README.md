@@ -2,15 +2,34 @@
 
 **Live site:** https://autocode-kdl3.onrender.com
 
+**Planning:** [Trello board](https://trello.com/b/jryG4kLn/auto-code)
+
 ## Overview
 
-A web app that helps car owners track their OBD-II error codes. Each car in your garage keeps its own code history, every code shows how serious it is, and a built-in assistant understands what the car is doing (in Arabic or English), suggests the likely causes, and remembers the conversation.
+Know your car before you walk into the garage.
+
+Auto Code helps people who don't know much about cars understand what is wrong with their car, so they are harder to overcharge or mislead at a garage. Each car in your garage keeps its own fault history and service log, every code shows how serious it is, and a built-in assistant understands what the car is doing (in Arabic or English) and suggests the likely causes.
 
 Car faults are private: every user sees only their own cars and codes.
 
+## Features
+
+- **Dashboard**: every car with its photo, a health score from 0 to 100, open faults, the next service and the last code.
+- **Car photos**: found automatically from Wikimedia by year, make and model. No upload needed.
+- **Before you go to the garage**: for each open code, what it means, what to check first (cheapest first), three questions to ask the mechanic, and what not to pay for.
+- **The garage told me…**: type what the mechanic said and the app checks it against the car's open codes and last oil change.
+- **Service log**: oil, air filter, tires, brake fluid, battery and transmission oil, with reminders by date and mileage.
+- **OBD code search**: 9,533 codes with meaning, severity and fix.
+- **Assistant**: describe the problem in Arabic or English; replies use the right Arabic form for the user's gender and adapt to their car knowledge level.
+- **Roles**: super owner, admin, moderator and users, with temporary or permanent Agent Control access.
+- **Night theme** that works on phones.
+
 ## Screenshots
 
-_Coming soon_
+![Home page](public/images/home.png)
+![Dashboard](public/images/dashboard.png)
+![OBD codes](public/images/obd.png)
+![Assistant](public/images/assistant.png)
 
 ## Technologies Used
 
@@ -20,11 +39,13 @@ _Coming soon_
 4. **express-session** + **connect-mongo** — Sessions
 5. **EJS** — Templates
 6. **CSS** — Styling
+7. **Wikimedia / Wikipedia API** — Car photos
+8. **MongoDB Atlas** + **Render** — Hosting
 
 ## Getting Started
 
 ```sh
-git clone https://github.com/z8kwfdw5vc-arch/AutoCode.git
+git clone https://github.com/YHM9205/AutoCode.git
 cd AutoCode
 npm install
 ```
@@ -70,6 +91,10 @@ node seed/userInfo.js <username|email|id>
 - As a user, I want to log an OBD-II code on a specific car so each car has its own fault history.
 - As a user, I want to see how serious a code is: keep driving, visit a workshop soon, or stop the car now.
 - As a user, I want to mark a code as Open, In Progress or Resolved.
+- As a user, I want a dashboard that shows how healthy each car is and what needs attention.
+- As a user, I want to log services (oil, filters, tires…) and be reminded when the next one is due.
+- As a user, I want to know what to ask and what not to pay for before I go to the garage.
+- As a user, I want to check what the mechanic told me against my car's faults.
 - As a user, I want to describe what my car is doing and get the likely causes, what to check first, and how urgent it is.
 - As a user, I want to manage my profile, change my password, and delete my account.
 - As the super owner, I want to add, view, update and delete users, set their roles, and reset forgotten passwords.
@@ -272,16 +297,19 @@ erDiagram
 | GET / POST | `/auth/login` | Login form / log in | Everyone |
 | GET | `/auth/logout` | Log out | Signed in |
 | GET | `/obd` | Browse / search OBD codes (`?q=P03`) | Everyone |
-| GET | `/garage` | My cars | Signed in |
+| GET | `/garage` | Dashboard: my cars, health and next service | Signed in |
 | GET | `/garage/new` | Add car form | Signed in |
 | POST | `/garage` | Create car | Signed in |
 | GET | `/garage/:id` | Car details + code history | Car owner |
 | GET | `/garage/:id/edit` | Edit car form | Car owner |
 | PUT | `/garage/:id` | Update car | Car owner |
-| DELETE | `/garage/:id` | Delete car and its logs | Car owner |
+| DELETE | `/garage/:id` | Delete car with its logs and services | Car owner |
 | POST | `/garage/:id/logs` | Log a code on this car | Car owner |
 | PUT | `/garage/:id/logs/:logId` | Change repair status | Car owner |
 | DELETE | `/garage/:id/logs/:logId` | Delete a log | Car owner |
+| POST | `/garage/:id/services` | Log a service | Car owner |
+| DELETE | `/garage/:id/services/:serviceId` | Delete a service | Car owner |
+| POST | `/garage/:id/check` | Check what the garage said | Car owner |
 | GET | `/agent` | Assistant | Signed in |
 | POST | `/agent/ask` | Send a message to the assistant | Signed in |
 | POST | `/agent/new` | Start a new conversation | Signed in |
@@ -303,23 +331,46 @@ erDiagram
 ```
 config/        DB connection
 controllers/   auth, index, obd, garage, agent, user
-middleware/    isSignedIn, isAdmin, isSuperOwner, canControlAgent, passUserToView
-models/        User, Owner, Car, ObdCode, CodeLog, Agent, ...
+middleware/    isSignedIn, isAdmin, isSuperOwner, canControlAgent, passUserToView, loginLimiter
+models/        User, Owner, Car, CodeLog, Maintenance, ObdCode, Agent, ...
 routes/        auth, index, obd, garage, agent, user
 seed/          importCodes, obdCodes, makeAdmin, userInfo
-utils/         diagnosis, carImage, carModels, decodeDtc, decodeVin, roles
+utils/         diagnosis, health, service, carImage, carModels, decodeDtc, decodeVin, roles
 views/         EJS templates (garage/, users/, agent/, obd/, auth/, partials/)
-public/        CSS
+public/        CSS, site icon
 ```
+
+## Security
+
+- Passwords hashed with bcrypt; sessions stored in MongoDB and renewed on login
+- Login limited to 10 attempts per 15 minutes
+- Every car, log and service is loaded together with its owner, so no one can open another user's data by changing an id
+- Cookies are `httpOnly` and `sameSite: lax`
+
+## Deployment
+
+Hosted on Render (free web service) with the database on MongoDB Atlas.
+
+1. Atlas: Network Access → add `0.0.0.0/0`
+2. Render: New Web Service → this repo, branch `main`
+3. Build command `npm install`, start command `node server.js`
+4. Environment variables: `MONGODB_URI` and `SESSION_SECRET` (Render sets `PORT`)
+
+Every push to `main` deploys automatically.
 
 ## Future Enhancements
 
 - [ ] Fill make and year from the VIN in the car form (decoder ready in `utils/decodeVin.js`)
-- [ ] Model dropdown based on the chosen make
 - [ ] Edit a knowledge item in Agent Control
 - [ ] Read codes directly from a Bluetooth OBD-II scanner (ELM327)
 - [ ] Link parts and prices to each code
-- [ ] Mobile-responsive dark mode
+- [ ] Upload your own car photo
+
+## Attributions
+
+- OBD-II codes: [OBDex](https://github.com/foerbsnavi/OBDex) (CC0), based on SAE J2012
+- Car photos: [Wikimedia Commons](https://commons.wikimedia.org) and [Wikipedia](https://www.wikipedia.org), loaded by their public APIs
+- Hosting: [Render](https://render.com) and [MongoDB Atlas](https://www.mongodb.com/atlas)
 
 ## Credits
 

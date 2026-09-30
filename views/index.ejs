@@ -1,8 +1,14 @@
-<%- include('partials/head') %>
+<%- include('partials/head', { title: 'Home' }) %>
 <section class="hero">
     <p class="eyebrow">Auto Code</p>
     <h1>Know your car before you walk into the garage.</h1>
-    <p class="lead">Log your car's fault codes, understand them in plain words, and check what the mechanic tells you.</p>
+    <aside class="tip" aria-label="Car tip">
+        <span class="tip-icon" aria-hidden="true">💡</span>
+        <div>
+            <p class="tip-label">Car tip</p>
+            <p class="tip-text"><%= tip %></p>
+        </div>
+    </aside>
     <% if (!user) { %>
         <div class="card-actions">
             <a href="/auth/signup" class="button-link">Create a free account</a>

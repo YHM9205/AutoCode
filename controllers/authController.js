@@ -42,8 +42,8 @@ const signupUser = async (req, res) => {
         return renderSignupError("Username must be between 2 and 50 characters.");
     }
 
-    if (password.length < 6) {
-        return renderSignupError("Password must be at least 6 characters.");
+    if (password.length <= 6) {
+        return renderSignupError("Password must be more than 6 characters.");
     }
 
     if (password !== confirmPassword) {
