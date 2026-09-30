@@ -6,6 +6,8 @@ router.get('/', garage.index);
 
 router.get('/new', garage.newCar);
 
+router.get('/vin', garage.vinLookup);
+
 router.post('/', garage.createCar);
 
 router.get('/:id', garage.showCar);

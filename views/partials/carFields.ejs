@@ -35,4 +35,45 @@
     });
     modelPick.addEventListener('change', syncOther);
     syncOther();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = makeSelect.form;
+        const vinInput = form.querySelector('[name="vin"]');
+        const yearSelect = form.querySelector('[name="year"]');
+        const vinInfo = document.createElement('p');
+        vinInfo.className = 'vin-info';
+        vinInfo.setAttribute('aria-live', 'polite');
+        vinInput.after(vinInfo);
+        const showVin = (text, ok) => {
+            vinInfo.textContent = text;
+            vinInfo.classList.toggle('vin-ok', ok === true);
+            vinInfo.classList.toggle('vin-bad', ok === false);
+        };
+        vinInput.addEventListener('input', async () => {
+            const vin = vinInput.value.trim().toUpperCase();
+            if (!vin) return showVin('');
+            if (vin.length < 17) return showVin(`${vin.length} of 17 characters`);
+            try {
+                const res = await fetch(`/garage/vin?vin=${encodeURIComponent(vin)}`);
+                const result = await res.json();
+                if (!result.valid) return showVin(result.error, false);
+                const found = [];
+                if (result.make && [...makeSelect.options].some((o) => o.value === result.make)) {
+                    if (makeSelect.value !== result.make) {
+                        makeSelect.value = result.make;
+                        makeSelect.dispatchEvent(new Event('change'));
+                    }
+                    found.push(result.make);
+                }
+                if (result.year && [...yearSelect.options].some((o) => o.value === String(result.year))) {
+                    yearSelect.value = String(result.year);
+                    found.push(result.year);
+                }
+                if (result.country) found.push(result.country);
+                showVin(found.length ? `VIN looks right: ${found.join(', ')}` : 'VIN looks right', true);
+            } catch (error) {
+                showVin('');
+            }
+        });
+    });
 </script>

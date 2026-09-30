@@ -15,6 +15,7 @@ Car faults are private: every user sees only their own cars and codes.
 ## Features
 
 - **Dashboard**: every car with its photo, a health score from 0 to 100, open faults, the next service and the last code.
+- **VIN decoder**: type the VIN and the make and year fill in by themselves; a mistyped VIN is caught by its check digit.
 - **Car photos**: found automatically from Wikimedia by year, make and model. No upload needed.
 - **Before you go to the garage**: for each open code, what it means, what to check first (cheapest first), three questions to ask the mechanic, and what not to pay for.
 - **The garage told me…**: type what the mechanic said and the app checks it against the car's open codes and last oil change.
@@ -299,6 +300,7 @@ erDiagram
 | GET | `/obd` | Browse / search OBD codes (`?q=P03`) | Everyone |
 | GET | `/garage` | Dashboard: my cars, health and next service | Signed in |
 | GET | `/garage/new` | Add car form | Signed in |
+| GET | `/garage/vin?vin=` | Decode a VIN (JSON) | Signed in |
 | POST | `/garage` | Create car | Signed in |
 | GET | `/garage/:id` | Car details + code history | Car owner |
 | GET | `/garage/:id/edit` | Edit car form | Car owner |
@@ -360,7 +362,6 @@ Every push to `main` deploys automatically.
 
 ## Future Enhancements
 
-- [ ] Fill make and year from the VIN in the car form (decoder ready in `utils/decodeVin.js`)
 - [ ] Edit a knowledge item in Agent Control
 - [ ] Read codes directly from a Bluetooth OBD-II scanner (ELM327)
 - [ ] Link parts and prices to each code

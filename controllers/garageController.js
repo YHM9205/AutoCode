@@ -5,6 +5,7 @@ const CodeLog = require('../models/CodeLog');
 const ObdCode = require('../models/ObdCode');
 const Maintenance = require('../models/Maintenance');
 const decodeDtc = require('../utils/decodeDtc');
+const decodeVin = require('../utils/decodeVin');
 const { carHealth } = require('../utils/health');
 const { findCarImage } = require('../utils/carImage');
 const { MODELS } = require('../utils/carModels');
@@ -20,6 +21,12 @@ const formOptions = { makes: MAKES, years: YEARS, models: MODELS };
 const isOpen = (log) => log.status !== 'Resolved';
 const worstOf = (logs) => URGENCY_ORDER.find((level) => logs.some((l) => l.severity === level)) || null;
 const pickModel = (body) => (body.modelPick && body.modelPick !== 'Other' ? body.modelPick : body.modelOther || body.model);
+const checkVin = (vin) => {
+    if (!vin) return;
+    const result = decodeVin(vin);
+    if (!result.valid) throw new Error(result.error);
+};
+const saveError = (error) => (error.code === 11000 ? 'This VIN is already registered' : error.message);
 const toMileage = (value) => (value === '' || value == null ? undefined : Number(value));
 
 const getOwner = (req) => Owner.findOneAndUpdate(
@@ -87,12 +94,13 @@ const createCar = async (req, res) => {
         const owner = await getOwner(req);
         const { make, year, vin, mileage } = req.body;
         const model = pickModel(req.body);
+        checkVin(vin);
         const image = await findCarImage(make, model, year);
         const car = await Car.create({ make, model, year, vin: vin || undefined, mileage: toMileage(mileage), image, owner: owner._id });
         res.redirect(`/garage/${car._id}`);
     } catch (error) {
         console.log(error);
-        res.status(400).render('garage/new.ejs', { ...formOptions, error: error.message });
+        res.status(400).render('garage/new.ejs', { ...formOptions, error: saveError(error) });
     }
 };
 
@@ -153,6 +161,7 @@ const updateCar = async (req, res) => {
         if (!car) return res.status(404).render('error.ejs', { message: 'Car not found' });
         const { make, year, vin, mileage } = req.body;
         const model = pickModel(req.body);
+        checkVin(vin);
         const renamed = make !== car.make || model !== car.model || Number(year) !== car.year;
         Object.assign(car, { make, model, year, vin: vin || undefined, mileage: toMileage(mileage) });
         if (renamed) car.image = await findCarImage(make, model, year);
@@ -161,7 +170,7 @@ const updateCar = async (req, res) => {
     } catch (error) {
         console.log(error);
         if (!car) return res.status(500).render('error.ejs', { message: 'Something went wrong' });
-        res.status(400).render('garage/edit.ejs', { ...formOptions, car, error: error.message });
+        res.status(400).render('garage/edit.ejs', { ...formOptions, car, error: saveError(error) });
     }
 };
 
@@ -296,7 +305,11 @@ const checkGarage = async (req, res) => {
     }
 };
 
+const vinLookup = (req, res) => {
+    res.json(decodeVin(req.query.vin));
+};
+
 module.exports = {
-    index, newCar, createCar, showCar, editCar, updateCar, deleteCar,
+    vinLookup, index, newCar, createCar, showCar, editCar, updateCar, deleteCar,
     addLog, updateLog, deleteLog, addService, deleteService, checkGarage
 };
