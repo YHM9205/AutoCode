@@ -298,7 +298,7 @@ erDiagram
 | GET / POST | `/auth/login` | Login form / log in | Everyone |
 | GET | `/auth/logout` | Log out | Signed in |
 | GET | `/obd` | Browse / search OBD codes (`?q=P03`) | Everyone |
-| GET | `/garage` | Dashboard: my cars, health and next service | Signed in |
+| GET | `/garage` | Dashboard: my cars, health and next service, search by car id (`?id=`) | Signed in |
 | GET | `/garage/new` | Add car form | Signed in |
 | GET | `/garage/vin?vin=` | Decode a VIN (JSON) | Signed in |
 | POST | `/garage` | Create car | Signed in |

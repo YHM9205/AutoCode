@@ -92,21 +92,25 @@ const update = async (req, res) => {
         const shownUser = await findUser(req);
         if (!shownUser) return res.status(404).render('error.ejs', { message: 'User not found' });
         const { username, email, role } = req.body;
-        shownUser.username = username;
-        shownUser.email = email;
+        const changes = { username, email };
         if (isMe(req)) {
-            if (['male', 'female'].includes(req.body.gender)) shownUser.gender = req.body.gender;
-            if (['beginner', 'intermediate', 'expert'].includes(req.body.level)) shownUser.level = req.body.level;
+            if (['male', 'female'].includes(req.body.gender)) changes.gender = req.body.gender;
+            if (['beginner', 'intermediate', 'expert'].includes(req.body.level)) changes.level = req.body.level;
         }
         if (isSuperOwner(req.session.user) && !isMe(req) && ASSIGNABLE_ROLES.includes(role)) {
-            shownUser.role = role;
-            if (!isStaff(shownUser)) shownUser.agentAccess = 'none';
+            changes.role = role;
+            if (!isStaff({ role })) changes.agentAccess = 'none';
         }
-        await shownUser.save();
-        res.redirect(`/users/${shownUser._id}?saved=1`);
+        await User.findByIdAndUpdate(req.params.id, changes, { runValidators: true });
+        res.redirect(`/users/${req.params.id}?saved=1`);
     } catch (error) {
         console.log(error);
-        const message = error.code === 11000 ? 'Username or email already used' : error.message;
+        const invalid = error.errors ? Object.keys(error.errors)[0] : null;
+        const message = error.code === 11000
+            ? 'Username or email already used'
+            : invalid === 'email' ? 'Enter a valid email'
+                : invalid === 'username' ? 'Username must be 2 to 50 characters'
+                    : 'Could not save the changes';
         res.redirect(`/users/${req.params.id}?error=${encodeURIComponent(message)}`);
     }
 };
@@ -175,7 +179,7 @@ const remove = async (req, res) => {
             await owner.deleteOne();
         }
         await CodeLog.deleteMany({ user: shownUser._id });
-        await shownUser.deleteOne();
+        await User.findByIdAndDelete(req.params.id);
 
         if (isMe(req)) return req.session.destroy(() => res.redirect('/'));
         res.redirect('/users');

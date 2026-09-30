@@ -8,6 +8,12 @@
     <a href="/garage/new" class="button-link">+ Add car</a>
 </section>
 
+<form action="/garage" method="GET" class="search-form">
+    <input name="id" value="<%= id %>" placeholder="Find a car by its id" required>
+    <button>Search</button>
+</form>
+<% if (searchError) { %><p class="error"><%= searchError %></p><% } %>
+
 <section class="stats" aria-label="Summary">
     <div class="stat">
         <span class="stat-value"><%= stats.cars %></span>

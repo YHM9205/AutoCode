@@ -7,6 +7,7 @@
         <p class="muted">
             <%= car.mileage != null ? `${car.mileage.toLocaleString()} km` : 'Mileage not set' %>
             <%= car.vin ? ` · VIN ${car.vin}` : '' %>
+            · ID <span class="car-id"><%= car._id %></span>
             · <a href="/garage/<%= car._id %>/edit">Edit car</a>
         </p>
     </div>

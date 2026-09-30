@@ -44,6 +44,11 @@ const findMyCar = async (req) => {
 const index = async (req, res) => {
     try {
         const owner = await getOwner(req);
+        const id = String(req.query.id || '').trim();
+        if (id) {
+            const found = mongoose.isValidObjectId(id) && await Car.exists({ _id: id, owner: owner._id });
+            if (found) return res.redirect(`/garage/${id}`);
+        }
         const cars = await Car.find({ owner: owner._id }).sort({ createdAt: -1 });
         await Promise.all(cars.filter((c) => c.image == null).map(async (c) => {
             const image = await findCarImage(c.make, c.model, c.year);
@@ -78,7 +83,7 @@ const index = async (req, res) => {
         };
         const recent = logs.slice(0, 5).map((log) => ({ log, car: cars.find((c) => c._id.equals(log.car)) }));
 
-        res.render('garage/index.ejs', { cards, stats, recent });
+        res.render('garage/index.ejs', { cards, stats, recent, id, searchError: id ? 'No car with that id in your garage' : null });
     } catch (error) {
         console.log(error);
         res.status(500).render('error.ejs', { message: 'Something went wrong' });
@@ -163,9 +168,16 @@ const updateCar = async (req, res) => {
         const model = pickModel(req.body);
         checkVin(vin);
         const renamed = make !== car.make || model !== car.model || Number(year) !== car.year;
-        Object.assign(car, { make, model, year, vin: vin || undefined, mileage: toMileage(mileage) });
-        if (renamed) car.image = await findCarImage(make, model, year);
-        await car.save();
+        const set = { make, model, year };
+        const unset = {};
+        const km = toMileage(mileage);
+        if (vin) set.vin = vin; else unset.vin = 1;
+        if (km === undefined) unset.mileage = 1; else set.mileage = km;
+        if (renamed) {
+            const image = await findCarImage(make, model, year);
+            if (image === undefined) unset.image = 1; else set.image = image;
+        }
+        await Car.findByIdAndUpdate(car._id, { $set: set, ...(Object.keys(unset).length && { $unset: unset }) }, { runValidators: true });
         res.redirect(`/garage/${car._id}`);
     } catch (error) {
         console.log(error);
@@ -180,7 +192,7 @@ const deleteCar = async (req, res) => {
         if (car) {
             await CodeLog.deleteMany({ car: car._id });
             await Maintenance.deleteMany({ car: car._id });
-            await car.deleteOne();
+            await Car.findByIdAndDelete(car._id);
         }
         res.redirect('/garage');
     } catch (error) {
