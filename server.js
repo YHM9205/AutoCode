@@ -17,6 +17,9 @@ const garageRoutes = require("./routes/garageRoutes.js");
 const agentRoutes = require("./routes/agentRoutes.js");
 const userRoutes = require("./routes/userRoutes.js");
 
+app.set('trust proxy', 1)
+app.disable('x-powered-by')
+
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'))
@@ -25,7 +28,7 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
 
     store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
@@ -34,6 +37,7 @@ app.use(
 
     cookie: {
       httpOnly: true,
+      sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 24
     }
   })

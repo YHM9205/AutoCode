@@ -2,7 +2,7 @@
   "name": "auto-code",
   "version": "1.0.0",
   "description": "A web app created to help car owners catch their error codes and damaged parts to replace.\r The app is designed to make a bridge between Cars and software.",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
@@ -11,6 +11,9 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "connect-mongo": "^6.0.0",

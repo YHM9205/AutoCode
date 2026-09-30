@@ -108,6 +108,85 @@ Typing a code (for example `P0300`) shows the code's details, the car's history 
 
 ## Database Design
 
+### ERD
+
+```mermaid
+erDiagram
+    USER ||--|| OWNER : "has profile"
+    OWNER ||--o{ CAR : owns
+    CAR ||--o{ CODELOG : "has faults"
+    USER ||--o{ CODELOG : logs
+    CAR ||--o{ MAINTENANCE : "has services"
+    OBDCODE |o..o{ CODELOG : "matched by code"
+    USER |o--o{ AGENT : "last updated"
+
+    USER {
+        ObjectId _id PK
+        String username UK
+        String email UK
+        String password
+        String role
+        String gender
+        String level
+        String agentAccess
+        Date agentAccessUntil
+    }
+    OWNER {
+        ObjectId _id PK
+        ObjectId user FK
+        String fullName
+        String phone
+        String garageName
+    }
+    CAR {
+        ObjectId _id PK
+        ObjectId owner FK
+        String make
+        String model
+        Number year
+        String vin UK
+        Number mileage
+        String image
+    }
+    CODELOG {
+        ObjectId _id PK
+        ObjectId user FK
+        ObjectId car FK
+        String code
+        String severity
+        String note
+        String status
+    }
+    MAINTENANCE {
+        ObjectId _id PK
+        ObjectId car FK
+        String serviceType
+        Date date
+        Number mileage
+        Number cost
+        String garage
+        String notes
+    }
+    OBDCODE {
+        ObjectId _id PK
+        String code UK
+        String name
+        String category
+        String problem
+        String solution
+        String severity
+    }
+    AGENT {
+        ObjectId _id PK
+        ObjectId updatedBy FK
+        String name
+        String status
+        Array instructions
+        Array knowledge
+        Array feedback
+    }
+```
+
 ### `User`
 | Field | Type | Notes |
 |-------|------|-------|
@@ -115,6 +194,8 @@ Typing a code (for example `P0300`) shows the code's details, the car's history 
 | `email` | String | unique, lowercase |
 | `password` | String | bcrypt hash |
 | `role` | String | `user`, `owner`, `technician`, `moderator`, `admin`, `superowner` |
+| `gender` | String | `male`, `female`, used for Arabic replies |
+| `level` | String | `beginner`, `intermediate`, `expert` |
 | `agentAccess` | String | `none`, `temporary`, `permanent` |
 | `agentAccessUntil` | Date | end of a temporary grant |
 
@@ -129,9 +210,11 @@ Typing a code (for example `P0300`) shows the code's details, the car's history 
 ### `Car`
 | Field | Type | Notes |
 |-------|------|-------|
-| `make` / `model` | String | make chosen from a list |
+| `make` / `model` | String | chosen from lists, or typed under Other |
 | `year` | Number | chosen from a list |
 | `vin` | String | optional, unique |
+| `mileage` | Number | km, optional |
+| `image` | String | photo URL found from Wikimedia by year, make and model |
 | `owner` | ObjectId → Owner | |
 
 ### `ObdCode`
@@ -155,6 +238,15 @@ Typing a code (for example `P0300`) shows the code's details, the car's history 
 | `note` | String | optional |
 | `status` | String | `Open`, `In Progress`, `Resolved` |
 
+### `Maintenance`
+| Field | Type | Notes |
+|-------|------|-------|
+| `car` | ObjectId → Car | |
+| `serviceType` | String | `oil`, `airFilter`, `tires`, `brakeFluid`, `battery`, `transmission` |
+| `date` | Date | |
+| `mileage` | Number | km at the service |
+| `cost` / `garage` / `notes` | | optional |
+
 ### `Agent`
 | Field | Type | Notes |
 |-------|------|-------|
@@ -164,10 +256,10 @@ Typing a code (for example `P0300`) shows the code's details, the car's history 
 | `feedback` | [Subdocument] | user corrections waiting for review |
 
 ### Relationships
-- User 1:1 Owner, Owner 1:N Car, Car 1:N CodeLog, User 1:N CodeLog
+- User 1:1 Owner, Owner 1:N Car, Car 1:N CodeLog, User 1:N CodeLog, Car 1:N Maintenance
 - `CodeLog.code` matches `ObdCode.code` by value, so a user can log a code that is not in the database yet
 - Agent knowledge and feedback are embedded
-- Deleting a car deletes its logs; deleting a user deletes their owner profile, cars and logs
+- Deleting a car deletes its logs and services; deleting a user deletes their owner profile, cars, logs and services
 
 ## Routes
 

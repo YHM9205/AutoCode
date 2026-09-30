@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Owner = require('../models/Owner');
 const Car = require('../models/Car');
 const CodeLog = require('../models/CodeLog');
+const Maintenance = require('../models/Maintenance');
 const { ASSIGNABLE_ROLES, isSuperOwner, isStaff, canControlAgent } = require('../utils/roles');
 
 const isMe = (req) => req.params.id === String(req.session.user._id);
@@ -167,6 +168,7 @@ const remove = async (req, res) => {
         if (owner) {
             const cars = await Car.find({ owner: owner._id });
             await CodeLog.deleteMany({ car: { $in: cars.map((c) => c._id) } });
+            await Maintenance.deleteMany({ car: { $in: cars.map((c) => c._id) } });
             await Car.deleteMany({ owner: owner._id });
             await owner.deleteOne();
         }
