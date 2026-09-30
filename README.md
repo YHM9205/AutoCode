@@ -57,6 +57,7 @@ Car faults are private: every user sees only their own cars and codes.
 
 ![Home page](public/images/home.png)
 ![Dashboard](public/images/dashboard.png)
+![Car page](public/images/car.png)
 ![OBD codes](public/images/obd.png)
 ![Assistant](public/images/assistant.png)
 
@@ -165,6 +166,8 @@ Typing a code (for example `P0300`) shows the code's details, the car's history 
 ## Database Design
 
 ### ERD
+
+![AutoCode ERD](ERD/erd-auto-code.png)
 
 ```mermaid
 erDiagram
