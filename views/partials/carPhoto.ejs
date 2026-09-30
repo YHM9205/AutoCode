@@ -1,5 +1,5 @@
+<% const photoSize = typeof size !== 'undefined' ? size : ''; %>
 <% if (car.image) { %>
-    <img src="<%= car.image %>" alt="<%= car.make %> <%= car.model %>" class="car-photo <%= typeof size !== 'undefined' ? size : '' %>" loading="lazy" referrerpolicy="no-referrer">
-<% } else { %>
-    <div class="car-photo car-photo-empty <%= typeof size !== 'undefined' ? size : '' %>" aria-hidden="true"><%= car.make.charAt(0).toUpperCase() %></div>
+    <img src="<%= car.image %>" alt="<%= car.make %> <%= car.model %>" class="car-photo <%= photoSize %>" loading="lazy" referrerpolicy="no-referrer" onerror="this.hidden = true; this.nextElementSibling.hidden = false;">
 <% } %>
+<div class="car-photo car-photo-empty <%= photoSize %>" aria-hidden="true" <%= car.image ? 'hidden' : '' %>><%= car.make.charAt(0).toUpperCase() %></div>

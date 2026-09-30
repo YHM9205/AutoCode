@@ -73,6 +73,7 @@ nav a:hover, nav a:focus-visible { color: var(--text); }
 main { max-width: 1040px; margin: 28px auto 56px; padding: 0 20px; }
 .site-footer { border-top: 1px solid var(--line); padding: 18px 20px; text-align: center; color: var(--muted); font-size: 0.85rem; }
 .site-footer p { margin: 0; }
+.car-photo[hidden] { display: none; }
 .car-id { font-family: var(--mono); font-size: 0.85em; user-select: all; }
 .vin-info { flex: 1 1 100%; margin: -4px 0 0; font-size: 0.85rem; color: var(--muted); }
 .vin-info:empty { display: none; }
