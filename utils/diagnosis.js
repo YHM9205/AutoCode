@@ -71,6 +71,12 @@ const SYMPTOMS = [
         words: ['السلانسيه', 'سلانسيه', 'الدورات', 'الدوره', 'العداد ينزل', 'واقفه', 'rpm', 'idle', 'revs', 'standing still'],
         codes: { P0505: 5, P0506: 4, P0507: 4, P0171: 2 },
         ask: { ar: 'السلانسيه يزيد وينقص وقت تشغيل المكيف؟', en: 'Does the idle go up and down when you turn the AC on?' }
+    },
+    {
+        id: 'abs', label: 'ABS or brake warning light', ar: 'لمبة ABS', urgency: 'soon',
+        words: ['اي بي اس', 'ايه بي اس', 'لمبة الفرامل', 'لمبة البريك', 'انتي لوك', 'abs', 'anti-lock', 'antilock', 'wheel speed', 'traction light'],
+        codes: { C0035: 4, C0040: 4, C0045: 3, C0050: 3, C0245: 3, C0265: 2, C0110: 2, U0121: 2, C0161: 1 },
+        ask: { ar: 'لمبة الـ ABS شابة على طول، ولا تطلع وتختفي؟ وتطلع أكثر بعد المطبات أو المطر؟', en: 'Is the ABS light on all the time, or does it come and go? Does it show up more after bumps or rain?' }
     }
 ];
 
@@ -170,6 +176,18 @@ const FAMILIES = {
         questionsEn: ['Did you test the battery with a tester?', 'What voltage is the alternator charging at?', 'Are the terminals clean?'],
         avoidAr: 'تبديل الدينمو قبل فحص البطارية والأقطاب.',
         avoidEn: 'Replacing the alternator before testing the battery and terminals.'
+    },
+    abs: {
+        codes: ['C0035', 'C0040', 'C0045', 'C0050', 'C0245', 'C0110', 'C0121', 'C0265', 'C0161', 'U0121', 'U0415'],
+        parts: ['absSensor', 'absModule'],
+        ar: 'نظام منع انغلاق الفرامل (ABS) فيه خلل وطفى. الفرامل العادية تشتغل، بس الـ ABS ما بيساعدك وقت الفرملة القوية.',
+        en: 'the anti-lock brake system (ABS) has a fault and switched itself off. Normal brakes still work, but ABS will not help in a hard stop.',
+        stepsAr: 'الفيشة والسلك عند حساس الكفر أول (أرخص شي وغالبًا هي السبب)، بعدين تنظيف الحساس، بعدين مقارنة قراءة الحساسات الأربعة بالجهاز، وآخر شي كمبيوتر الـ ABS.',
+        stepsEn: 'the connector and wire at the wheel sensor first (cheapest, and often the cause), then clean the sensor, then compare all four sensor readings on the scanner, and the ABS module last.',
+        questionsAr: ['أي كفر فيه المشكلة؟', 'فحصتوا الفيشة والسلك قبل ما تبدلون الحساس؟', 'ممكن أشوف قراءة الحساسات الأربعة على الجهاز وقت المشي؟'],
+        questionsEn: ['Which wheel has the fault?', 'Did you check the connector and wire before replacing the sensor?', 'Can I see all four wheel speed readings on the scanner while driving?'],
+        avoidAr: 'تبديل كمبيوتر أو طرمبة الـ ABS (غالية وايد) قبل فحص الفيش والحساسات.',
+        avoidEn: 'Replacing the ABS module or pump (very expensive) before checking the connectors and sensors.'
     }
 };
 
@@ -210,6 +228,7 @@ const toMatcher = (word) => {
 };
 
 const PREPARED = SYMPTOMS.map((s) => ({ ...s, matchers: s.words.map(toMatcher) }));
+const ENGINE_WORDS = ['المكينه', 'مكينه', 'engine', 'check engine'].map(toMatcher);
 
 const isArabic = (text) => /[؀-ۿ]/.test(String(text || ''));
 
@@ -220,9 +239,14 @@ const think = (messages) => {
     const matched = [];
     const scores = {};
 
-    PREPARED.forEach((symptom) => {
-        const at = inputs.map((input) => symptom.matchers.some((match) => match(input)));
-        if (!at.includes(true)) return;
+    const hits = PREPARED
+        .map((symptom) => ({ symptom, at: inputs.map((input) => symptom.matchers.some((match) => match(input))) }))
+        .filter((hit) => hit.at.includes(true));
+    const aboutEngine = inputs.some((input) => ENGINE_WORDS.some((match) => match(input)));
+    const hasAbs = hits.some((hit) => hit.symptom.id === 'abs');
+
+    hits.forEach(({ symptom, at }) => {
+        if (symptom.id === 'light' && hasAbs && !aboutEngine) return;
         const boost = at[at.length - 1] ? 2 : 1;
         matched.push({ id: symptom.id, label: symptom.label, ar: symptom.ar, urgency: symptom.urgency, ask: symptom.ask });
         Object.entries(symptom.codes).forEach(([code, weight]) => {
@@ -418,6 +442,28 @@ const PARTS = [
         codes: ['P0325', 'P0330']
     },
     {
+        id: 'absSensor', ar: 'حساس الـ ABS (حساس سرعة الكفر)', en: 'ABS wheel speed sensor',
+        words: ['حساس abs', 'حساس الاي بي اس', 'حساس الكفر', 'حساس سرعة الكفر', 'حساس الويل', 'wheel speed sensor', 'abs sensor', 'speed sensor'],
+        whereAr: 'واحد عند كل كفر، ورا الديسك قريب من البيرنق، وسلكه ماشي مع لي الفرامل.',
+        whereEn: 'One at each wheel, behind the brake disc near the wheel bearing, with its wire running along the brake hose.',
+        jobAr: 'يقيس سرعة كل كفر، عشان الكمبيوتر يعرف إذا كفر بيقفل وقت الفرملة.',
+        jobEn: 'Measures the speed of each wheel so the computer knows when a wheel is about to lock while braking.',
+        tipAr: 'قبل ما تبدله: افحص الفيشة والسلك عند الكفر. كثير مرات تكون الفيشة وسخة أو مرتخية أو السلك مقطوع، أو الحساس عليه وسخ وبرادة حديد من الفرامل، والتنظيف يحلها.',
+        tipEn: 'Before replacing it: check the connector and wire at the wheel. Very often the plug is dirty, loose or the wire is cut, or the sensor is covered in brake dust and metal, and cleaning fixes it.',
+        codes: ['C0035', 'C0040', 'C0045', 'C0050', 'C0245']
+    },
+    {
+        id: 'absModule', ar: 'كمبيوتر وطرمبة الـ ABS', en: 'ABS module and pump', ownCodesOnly: true,
+        words: ['اي بي اس', 'ايه بي اس', 'كمبيوتر الفرامل', 'طرمبة الفرامل', 'abs module', 'abs pump', 'abs unit', 'abs'],
+        whereAr: 'في مكينة السيارة قريب من علبة زيت الفرامل، وتطلع منه ليات الفرامل لكل كفر.',
+        whereEn: 'In the engine bay near the brake fluid reservoir, with a brake line going out to each wheel.',
+        jobAr: 'يقرا الحساسات الأربعة، ولما كفر يبي يقفل يخفف ويرجع الضغط عليه بسرعة عشان ما تتزحلق.',
+        jobEn: 'Reads the four wheel sensors and, when a wheel is about to lock, pulses the brake pressure on it so the car does not skid.',
+        tipAr: 'هذي من أغلى القطع. قبل ما تبدلها: افحص الفيوز والفيش والسلك الأرضي، وتأكد إن الحساسات الأربعة تقرا صح. أغلب المرات المشكلة في حساس أو فيشة مو في الكمبيوتر.',
+        tipEn: 'This is one of the most expensive parts. Before replacing it: check the fuse, the connectors and the ground wire, and make sure all four sensors read correctly. Most of the time the problem is a sensor or a plug, not the module.',
+        codes: ['C0110', 'C0121', 'C0265', 'C0161', 'U0121', 'U0415']
+    },
+    {
         id: 'gearbox', ar: 'القير', en: 'Gearbox (transmission)',
         words: ['القير', 'قير', 'الجير', 'gearbox', 'transmission'],
         whereAr: 'تحت السيارة ورا المكينة، ومربوط فيها.',
@@ -435,9 +481,11 @@ const findPart = (text) => {
 
 const partReply = (part, lang) => {
     const ar = lang === 'ar';
-    return ar
+    const tip = ar ? part.tipAr : part.tipEn;
+    const text = ar
         ? `${part.ar}: ${part.whereAr} شغلته: ${part.jobAr} الأكواد المرتبطة فيه: ${part.codes.join('، ')}.`
         : `${part.en}: ${part.whereEn} What it does: ${part.jobEn} Related codes: ${part.codes.join(', ')}.`;
+    return tip ? `${text} ${tip}` : text;
 };
 
 const OIL_WORDS = ['غيار زيت', 'زيت المكينه', 'تبديل الزيت', 'نبدل الزيت', 'oil change', 'change the oil', 'engine oil'].map(toMatcher);
@@ -494,28 +542,29 @@ const checkClaim = ({ text, openCodes = [], lastOil = null, carMileage = null, l
     }
 
     const name = ar ? part.ar : part.en;
-    const related = openCodes.filter((c) => part.codes.includes(c) || (familyOf(c) && familyOf(c).parts.includes(part.id)));
+    const related = openCodes.filter((c) => part.codes.includes(c)
+        || (!part.ownCodesOnly && familyOf(c) && familyOf(c).parts.includes(part.id)));
+    const tip = ar ? part.tipAr : part.tipEn;
+    const withTip = (text) => (tip ? `${text} ${tip}` : text);
     if (related.length) {
-        return {
-            verdict: 'ok',
-            text: ar
-                ? `✅ منطقي: ${name} مرتبطة بالكود ${related.join('، ')} اللي في السيارة. ${g(gender, 'اسأله', 'اسأليه', 'سؤال مهم')}: "فحصتوها قبل ما تبدلونها؟" ${g(gender, 'واطلب', 'واطلبي', 'والأفضل طلب')} القطعة القديمة.`
-                : `✅ Makes sense: the ${part.en} is linked to ${related.join(', ')} on this car. Ask: "Did you test it before replacing it?" and ask to keep the old part.`
-        };
+        const text = ar
+            ? `✅ منطقي: ${name} مرتبطة بالكود ${related.join('، ')} اللي في السيارة. ${g(gender, 'اسأله', 'اسأليه', 'سؤال مهم')}: "فحصتوها قبل ما تبدلونها؟" ${g(gender, 'واطلب', 'واطلبي', 'والأفضل طلب')} القطعة القديمة.`
+            : `✅ Makes sense: the ${part.en} is linked to ${related.join(', ')} on this car. Ask: "Did you test it before replacing it?" and ask to keep the old part.`;
+        return { verdict: 'ok', text: withTip(text) };
     }
     if (!openCodes.length) {
         return {
             verdict: 'warning',
-            text: ar
+            text: withTip(ar
                 ? `⚠️ ما في أي عطل مفتوح مسجل على السيارة. قبل تبديل ${name}، ${showMeAr(gender)}.`
-                : `⚠️ There are no open faults logged on this car. Before replacing the ${part.en}, ask them to show you the code on their scanner.`
+                : `⚠️ There are no open faults logged on this car. Before replacing the ${part.en}, ask them to show you the code on their scanner.`)
         };
     }
     return {
         verdict: 'warning',
-        text: ar
-            ? `⚠️ ${name} ما لها علاقة بالأعطال المسجلة (${openCodes.join('، ')}). ${g(gender, 'اسأله', 'اسأليه', 'السؤال المهم')}: "شلون هالقطعة مرتبطة بالعطل؟" و${g(gender, 'لا تدفع', 'لا تدفعين', 'الأفضل عدم الدفع')} لين يشرحون.`
-            : `⚠️ The ${part.en} is not linked to the logged faults (${openCodes.join(', ')}). Ask: "How is this part linked to the fault?" and do not pay until they explain.`
+        text: withTip(ar
+            ? `⚠️ ${name} ما لها علاقة مباشرة بالأعطال المسجلة (${openCodes.join('، ')}). ${g(gender, 'اسأله', 'اسأليه', 'السؤال المهم')}: "شلون هالقطعة مرتبطة بالعطل؟" و${g(gender, 'لا تدفع', 'لا تدفعين', 'الأفضل عدم الدفع')} لين يشرحون.`
+            : `⚠️ The ${part.en} is not directly linked to the logged faults (${openCodes.join(', ')}). Ask: "How is this part linked to the fault?" and do not pay until they explain.`)
     };
 };
 

@@ -8,7 +8,8 @@ const TIPS = [
     'Grinding brakes mean metal on metal. Get them checked this week, not next month.',
     'A second opinion costs you one visit. A wrong repair can cost you the whole car.',
     'Batteries in Gulf heat last about 2 to 3 years. Test yours before summer.',
-    'Check tire pressure once a month while the tires are cold. The right numbers are on the driver door frame.'
+    'Check tire pressure once a month while the tires are cold. The right numbers are on the driver door frame.',
+    'ABS light on? Your normal brakes still work. Before paying for a new ABS unit, have them check the wheel sensor plug and wire.'
 ];
 
 const randomTip = () => TIPS[Math.floor(Math.random() * TIPS.length)];
